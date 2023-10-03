@@ -67,12 +67,14 @@ func CreateGrid(board [][]Hex) {
 		}
 		for yIndex := 0; yIndex <= boardSizeY - 1; yIndex++ {
 			hex := board[xIndex][yIndex]
-			drawHex(ctx, x, y, hexRadius, strokeWidth, hex.GetColor(), hex.GetStrokeColor())
 			letter, ok := letterMap[xIndex]
 			if !ok {
 				panic("no letter found in map")
 			}
-			ctx.DrawText(x, y, hex.GetText(letter, yIndex))
+			hex.SetCol(letter)
+			hex.SetRow(yIndex)
+			drawHex(ctx, x, y, hexRadius, strokeWidth, hex.GetColor(), hex.GetStrokeColor())
+			ctx.DrawText(x, y, hex.GetText())
 			y =  y - height * 2
 		}
 	}

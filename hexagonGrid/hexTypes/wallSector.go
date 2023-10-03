@@ -7,8 +7,8 @@ import (
 )
 
 type WallSector struct {
-	x int
-	y int
+	col string
+	row int
 }
 
 func (s WallSector) GetColor() color.Color {
@@ -19,7 +19,7 @@ func (s WallSector) GetStrokeColor() color.Color {
 	return canvas.Transparent
 }
 
-func (s WallSector) GetText(x string, y int) *canvas.Text {
+func (s WallSector) GetText() *canvas.Text {
 	fontFamily := canvas.NewFontFamily("times")
 	if err := fontFamily.LoadSystemFont("Nimbus Roman, serif", canvas.FontRegular); err != nil {
 		panic(err)
@@ -28,10 +28,10 @@ func (s WallSector) GetText(x string, y int) *canvas.Text {
 	return canvas.NewTextLine(face, "", canvas.Center)
 }
 
-func (s WallSector) SetX(x int) {
-	s.x = x
+func (s *WallSector) SetCol(col string) {
+	s.col = col
 }
 
-func (s WallSector) SetY(y int) {
-	s.y = y
+func (s *WallSector) SetRow(row int) {
+	s.row = row
 }

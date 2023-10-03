@@ -8,8 +8,8 @@ import (
 )
 
 type EscapeSector struct {
-	x int
-	y int
+	col string
+	row int
 	EscapeNumber int
 }
 
@@ -21,19 +21,19 @@ func (s EscapeSector) GetStrokeColor() color.Color {
 	return canvas.Black
 }
 
-func (s EscapeSector) GetText(x string, y int) *canvas.Text {
+func (s EscapeSector) GetText() *canvas.Text {
 	fontFamily := canvas.NewFontFamily("times")
 	if err := fontFamily.LoadSystemFont("Nimbus Roman, serif", canvas.FontRegular); err != nil {
 		panic(err)
 	}
 	face := fontFamily.Face(6.0, canvas.Black, canvas.FontRegular, canvas.FontNormal)
-	return canvas.NewTextLine(face, fmt.Sprintf("E%d", s.EscapeNumber), canvas.Center)
+	return canvas.NewTextLine(face, fmt.Sprintf("%d", s.EscapeNumber), canvas.Center)
 }
 
-func (s EscapeSector) SetX(x int) {
-	s.x = x
+func (s *EscapeSector) SetCol(col string) {
+	s.col = col
 }
 
-func (s EscapeSector) SetY(y int) {
-	s.y = y
+func (s *EscapeSector) SetRow(row int) {
+	s.row = row
 }

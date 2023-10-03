@@ -7,19 +7,19 @@ import (
 )
 
 type ZombieSector struct {
-	x int
-	y int
+	col string
+	row int
 }
 
 func (s ZombieSector) GetColor() color.Color {
-	return canvas.Purple
+	return canvas.Lawngreen 
 }
 
 func (s ZombieSector) GetStrokeColor() color.Color {
 	return canvas.Black
 }
 
-func (s ZombieSector) GetText(x string, y int) *canvas.Text {
+func (s ZombieSector) GetText() *canvas.Text {
 	fontFamily := canvas.NewFontFamily("times")
 	if err := fontFamily.LoadSystemFont("Nimbus Roman, serif", canvas.FontRegular); err != nil {
 		panic(err)
@@ -28,10 +28,10 @@ func (s ZombieSector) GetText(x string, y int) *canvas.Text {
 	return canvas.NewTextLine(face, "Z", canvas.Center)
 }
 
-func (s ZombieSector) SetX(x int) {
-	s.x = x
+func (s *ZombieSector) SetCol(col string) {
+	s.col = col
 }
 
-func (s ZombieSector) SetY(y int) {
-	s.y = y
+func (s *ZombieSector) SetRow(row int) {
+	s.row = row
 }

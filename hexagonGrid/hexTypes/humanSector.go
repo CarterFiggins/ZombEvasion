@@ -7,31 +7,31 @@ import (
 )
 
 type HumanSector struct {
-	x int
-	y int
+	col string
+	row int
 }
 
 func (s HumanSector) GetColor() color.Color {
-	return canvas.Blue
+	return canvas.Navy 
 }
 
 func (s HumanSector) GetStrokeColor() color.Color {
 	return canvas.Black
 }
 
-func (s HumanSector) GetText(x string, y int) *canvas.Text {
+func (s HumanSector) GetText() *canvas.Text {
 	fontFamily := canvas.NewFontFamily("times")
 	if err := fontFamily.LoadSystemFont("Nimbus Roman, serif", canvas.FontRegular); err != nil {
 		panic(err)
 	}
-	face := fontFamily.Face(8.0, canvas.Black, canvas.FontRegular, canvas.FontNormal)
+	face := fontFamily.Face(8.0, canvas.White, canvas.FontRegular, canvas.FontNormal)
 	return canvas.NewTextLine(face, "H", canvas.Center)
 }
 
-func (s HumanSector) SetX(x int) {
-	s.x = x
+func (s *HumanSector) SetCol(col string) {
+	s.col = col
 }
 
-func (s HumanSector) SetY(y int) {
-	s.y = y
+func (s *HumanSector) SetRow(row int) {
+	s.row = row
 }
