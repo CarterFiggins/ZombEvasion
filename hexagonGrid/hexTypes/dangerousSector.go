@@ -1,6 +1,7 @@
 package hexTypes
 
 import (
+	"fmt"
 	"image/color"
 
 	"github.com/tdewolff/canvas"
@@ -19,10 +20,11 @@ func (s DangerousSector) GetStrokeColor() color.Color {
 	return canvas.Black
 }
 
-func (s DangerousSector) SetX(x int) {
-	s.x = x
-}
-
-func (s DangerousSector) SetY(y int) {
-	s.y = y
+func (s DangerousSector) GetText(x string, y int) *canvas.Text {
+	fontFamily := canvas.NewFontFamily("times")
+	if err := fontFamily.LoadSystemFont("Nimbus Roman, serif", canvas.FontRegular); err != nil {
+		panic(err)
+	}
+	face := fontFamily.Face(5.0, canvas.Black, canvas.FontRegular, canvas.FontNormal)
+	return canvas.NewTextLine(face, fmt.Sprintf("%s%02d", x, y+1), canvas.Center)
 }

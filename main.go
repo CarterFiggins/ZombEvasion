@@ -5,5 +5,5 @@ import(
 )
 
 func main() {
-	hexagonGrid.CreateGrid(hexagonGrid.TestBoard())
+	hexagonGrid.CreateGrid(hexagonGrid.MainBoard())
 }

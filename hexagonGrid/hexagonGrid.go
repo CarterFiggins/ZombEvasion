@@ -11,6 +11,34 @@ import (
 func CreateGrid(board [][]Hex) {
 	var canvasSizeX float64 = 100
 	var canvasSizeY  float64 = 100
+	letterMap := map[int]string{
+		0: "A",
+		1: "B",
+		2: "C",
+		3: "D",
+		4: "E",
+		5: "F",
+		6: "G",
+		7: "H",
+		8: "I",
+		9: "J",
+		10: "K",
+		11: "L",
+		12: "M",
+		13: "N",
+		14: "O",
+		15: "P",
+		16: "Q",
+		17: "R",
+		18: "S",
+		19: "T",
+		20: "U",
+		21: "V",
+		22: "W",
+		23: "X",
+		24: "Y",
+		25: "Z",
+	}
 	c := canvas.New(canvasSizeX, canvasSizeY)
 	ctx := canvas.NewContext(c)
 
@@ -39,17 +67,15 @@ func CreateGrid(board [][]Hex) {
 		}
 		for yIndex := 0; yIndex <= boardSizeY - 1; yIndex++ {
 			hex := board[xIndex][yIndex]
-			hex.SetX(xIndex)
-			hex.SetY(yIndex)
 			drawHex(ctx, x, y, hexRadius, strokeWidth, hex.GetColor(), hex.GetStrokeColor())
+			letter, ok := letterMap[xIndex]
+			if !ok {
+				panic("no letter found in map")
+			}
+			ctx.DrawText(x, y, hex.GetText(letter, yIndex))
 			y =  y - height * 2
 		}
 	}
-
-	ctx.DrawPath(0, 0, canvas.Rectangle(1, 1))
-	ctx.DrawPath(0, canvasSizeY-1, canvas.Rectangle(1, 1))
-	ctx.DrawPath(canvasSizeX-1, 0, canvas.Rectangle(1, 1))
-	ctx.DrawPath(canvasSizeX-1, canvasSizeY-1, canvas.Rectangle(1, 1))
 
 	renderers.Write("out.png", c, canvas.DPMM(8.0))
 }

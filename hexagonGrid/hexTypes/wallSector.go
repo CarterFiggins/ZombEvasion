@@ -19,6 +19,15 @@ func (s WallSector) GetStrokeColor() color.Color {
 	return canvas.Transparent
 }
 
+func (s WallSector) GetText(x string, y int) *canvas.Text {
+	fontFamily := canvas.NewFontFamily("times")
+	if err := fontFamily.LoadSystemFont("Nimbus Roman, serif", canvas.FontRegular); err != nil {
+		panic(err)
+	}
+	face := fontFamily.Face(8.0, canvas.Black, canvas.FontRegular, canvas.FontNormal)
+	return canvas.NewTextLine(face, "", canvas.Center)
+}
+
 func (s WallSector) SetX(x int) {
 	s.x = x
 }

@@ -3,19 +3,85 @@ package hexagonGrid
 import (
 	"image/color"
 
+	"github.com/tdewolff/canvas"
 	"github.com/hex/hexagonGrid/hexTypes"
 )
 
 type Hex interface {
 	GetColor() color.Color
 	GetStrokeColor() color.Color
-	SetX(int) 
-	SetY(int)
+	GetText(string, int) *canvas.Text
+}
+
+func TestBoard() [][]Hex{
+	return [][]Hex{
+		{
+			hexTypes.WallSector{},
+			hexTypes.SecureSector{},
+			hexTypes.DangerousSector{},
+			hexTypes.EscapeSector{EscapeNumber: 1},
+		},
+		{
+			hexTypes.DangerousSector{},
+			hexTypes.SecureSector{},
+			hexTypes.WallSector{},
+			hexTypes.ZombieSector{},
+		},
+		{
+			hexTypes.WallSector{},
+			hexTypes.DangerousSector{},
+			hexTypes.SecureSector{},
+			hexTypes.HumanSector{},
+		},
+		{
+			hexTypes.SecureSector{},
+			hexTypes.WallSector{},
+			hexTypes.WallSector{},
+			hexTypes.DangerousSector{},
+		},
+		{
+			hexTypes.SecureSector{},
+			hexTypes.WallSector{},
+			hexTypes.WallSector{},
+			hexTypes.DangerousSector{},
+		},
+		{
+			hexTypes.SecureSector{},
+			hexTypes.WallSector{},
+			hexTypes.WallSector{},
+			hexTypes.DangerousSector{},
+		},
+		{
+			hexTypes.SecureSector{},
+			hexTypes.SecureSector{},
+			hexTypes.SecureSector{},
+			hexTypes.DangerousSector{},
+		},
+		{
+			hexTypes.SecureSector{},
+			hexTypes.SecureSector{},
+			hexTypes.SecureSector{},
+			hexTypes.DangerousSector{},
+		},
+		{
+			hexTypes.SecureSector{},
+			hexTypes.SecureSector{},
+			hexTypes.SecureSector{},
+			hexTypes.DangerousSector{},
+		},
+		{
+			hexTypes.SecureSector{},
+			hexTypes.SecureSector{},
+			hexTypes.SecureSector{},
+			hexTypes.DangerousSector{},
+		},
+		
+	}
 }
 
 
-func TestBoard() [][]Hex{
-	test := [][]Hex{
+func MainBoard() [][]Hex{
+	return [][]Hex{
 		// a
 		{
 			hexTypes.WallSector{},
@@ -210,7 +276,7 @@ func TestBoard() [][]Hex{
 			hexTypes.DangerousSector{},
 			hexTypes.SecureSector{},
 			hexTypes.DangerousSector{},
-			hexTypes.AlienSector{},
+			hexTypes.ZombieSector{},
 			hexTypes.WallSector{},
 			hexTypes.HumanSector{},
 			hexTypes.SecureSector{},
@@ -408,6 +474,4 @@ func TestBoard() [][]Hex{
 			hexTypes.DangerousSector{},
 		},
 	}
-
-	return test
 }
