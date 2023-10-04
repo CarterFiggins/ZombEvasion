@@ -4,7 +4,7 @@ import (
 	"image/color"
 
 	"github.com/tdewolff/canvas"
-	"github.com/hex/hexagonGrid/hexTypes"
+	"infection/hexagonGrid/hexTypes"
 )
 
 type Hex interface {

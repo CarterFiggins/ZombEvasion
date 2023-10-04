@@ -1,7 +1,7 @@
 package main
 
 import(
-	"github.com/hex/hexagonGrid"
+	"infection/hexagonGrid"
 )
 
 func main() {
