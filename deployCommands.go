@@ -4,6 +4,7 @@ import(
 	"log"
 	"os"
 
+	"infection/bot/commands"
 	"github.com/bwmarrin/discordgo"
 )
 
@@ -31,24 +32,11 @@ func main() {
 	})
 
 	log.Println("Adding commands...")
-	command := &discordgo.ApplicationCommand{
-		Name: "ping",
-		Description: "ping the bot",
+	for _, command := range commands.Commands {
+		_, err := discord.ApplicationCommandCreate(discord.State.User.ID, "", command)
+		if err != nil {
+			log.Panicf("Cannot create '%v' command: %v", command.Name, err)
+		}
 	}
-
-	
-
-	_, err = discord.ApplicationCommandCreate(discord.State.User.ID, "", command)
-	if err != nil {
-		log.Panicf("Cannot create '%v' command: %v", command.Name, err)
-	}
-
-
-	// stop := make(chan os.Signal, 1)
-	// signal.Notify(stop, os.Interrupt)
-	// log.Println("Press Ctrl+C to exit")
-	// <-stop
-
-
-
+	log.Println("Commands added successfully")
 }

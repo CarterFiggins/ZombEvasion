@@ -6,6 +6,7 @@ import (
 	"os/signal"
 	"strings"
 	
+	"infection/bot/commands"
 	"github.com/bwmarrin/discordgo"
 )
 
@@ -24,19 +25,9 @@ func Run() {
 	// Add event handler for general messages
 	discord.AddHandler(newMessage)
 
-	commandHandlers := map[string]func(discordS *discordgo.Session, interaction *discordgo.InteractionCreate){
-		"ping": func(discordS *discordgo.Session, interaction *discordgo.InteractionCreate) {
-			discordS.InteractionRespond(interaction.Interaction, &discordgo.InteractionResponse{
-				Type: discordgo.InteractionResponseChannelMessageWithSource,
-				Data: &discordgo.InteractionResponseData{
-					Content: "PONG!",
-				},
-			})
-		},
-	}
-
+	// Add event handler for commands
 	discord.AddHandler(func(discord *discordgo.Session, interaction *discordgo.InteractionCreate) {
-		if handler, ok := commandHandlers[interaction.ApplicationCommandData().Name]; ok {
+		if handler, ok := commands.CommandHandlers[interaction.ApplicationCommandData().Name]; ok {
 			handler(discord, interaction)
 		}
 	})
@@ -62,7 +53,7 @@ func newMessage(discord *discordgo.Session, message *discordgo.MessageCreate) {
 	// Respond to messages
 	switch {
 	case strings.Contains(message.Content, "bot"):
-		discord.ChannelMessageSend(message.ChannelID, "Hello There!")
+		discord.ChannelMessageSend(message.ChannelID, "Hello Human!")
 	}
 
 }
