@@ -48,7 +48,7 @@ func CreateGrid(board [][]Hex) {
 	var hexRadius float64 = (2 * height) / math.Sqrt(3)
 	var xHexRadius float64 = ((canvasSizeX - 2) /float64(boardSizeX)) / 1.57
 
-	if (xHexRadius < hexRadius) {
+	if xHexRadius < hexRadius {
 		height = (xHexRadius * math.Sqrt(3))/2
 		hexRadius = xHexRadius
 	}
@@ -60,9 +60,9 @@ func CreateGrid(board [][]Hex) {
 
 	for xIndex := 0; xIndex <= boardSizeX - 1; xIndex++ {
 		x = x + hexRadius * 1.50
-		if (xIndex % 2 == 0) {
+		if xIndex % 2 == 0 {
 			y = setY + height
-			} else {
+		} else {
 			y = setY
 		}
 		for yIndex := 0; yIndex <= boardSizeY - 1; yIndex++ {
