@@ -44,7 +44,7 @@ func SetUpRoles(discord *discordgo.Session, interaction *discordgo.InteractionCr
 }
 
 func AddRole(discord *discordgo.Session, interaction *discordgo.InteractionCreate, roleName string) error {
-	role, err := getRole(discord, interaction, roleName)
+	role, err := GetRole(discord, interaction, roleName)
 	if err != nil {
 		return err
 	}
@@ -56,8 +56,21 @@ func AddRole(discord *discordgo.Session, interaction *discordgo.InteractionCreat
 	)
 }
 
+func RemoveRole(discord *discordgo.Session, interaction *discordgo.InteractionCreate, roleName string) error {
+	role, err := GetRole(discord, interaction, roleName)
+	if err != nil {
+		return err
+	}
+
+	return discord.GuildMemberRoleRemove(
+		interaction.Interaction.GuildID,
+		interaction.Interaction.Member.User.ID,
+		role.ID,
+	)
+}
+
 func AddRoleToUsers(discord *discordgo.Session, interaction *discordgo.InteractionCreate, roleName string, users []*discordgo.User) error {
-	role, err := getRole(discord, interaction, roleName)
+	role, err := GetRole(discord, interaction, roleName)
 	if err != nil {
 		return err
 	}
@@ -76,7 +89,28 @@ func AddRoleToUsers(discord *discordgo.Session, interaction *discordgo.Interacti
 	return nil
 }
 
-func getRole(discord *discordgo.Session, interaction *discordgo.InteractionCreate, roleName string) (*discordgo.Role, error) {
+func RemoveRoleToUsers(discord *discordgo.Session, interaction *discordgo.InteractionCreate, roleName string, users []*discordgo.User) error {
+	role, err := GetRole(discord, interaction, roleName)
+	if err != nil {
+		return err
+	}
+
+	for _, user := range users {
+		err = discord.GuildMemberRoleRemove(
+			interaction.Interaction.GuildID,
+			user.ID,
+			role.ID,
+		)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+
+func GetRole(discord *discordgo.Session, interaction *discordgo.InteractionCreate, roleName string) (*discordgo.Role, error) {
 	roleMap, err := CreateRoleMap(discord, interaction)
 	if err != nil {
 		return nil, err
@@ -116,4 +150,58 @@ func CreateRoleMap(discord *discordgo.Session, interaction *discordgo.Interactio
 		roleMap[role.Name] = role
 	}
 	return roleMap, nil
+}
+
+func MoveRolesInGame(discord *discordgo.Session, interaction *discordgo.InteractionCreate) error {
+	members, err := discord.GuildMembers(interaction.Interaction.GuildID, "1", 1000)
+	if err != nil {
+		return err
+	}
+
+	var usersInQueue []*discordgo.User
+	discordRole, err := GetRole(discord, interaction, WaitingForNextGame)
+
+	if err != nil {
+		return err
+	}
+
+	for _, member := range members {
+		for _, roleID := range member.Roles {
+			if roleID == discordRole.ID {
+				usersInQueue = append(usersInQueue, member.User)
+				break
+			}
+		}
+	}
+
+
+	err = AddRoleToUsers(discord, interaction, InGame, usersInQueue)
+	if err != nil {
+		return err
+	}
+	err = RemoveRoleToUsers(discord, interaction, WaitingForNextGame, usersInQueue)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func RemoveAllInGameRoles(discord *discordgo.Session, interaction *discordgo.InteractionCreate) error {
+	members, err := discord.GuildMembers(interaction.Interaction.GuildID, "1", 1000)
+	if err != nil {
+		return err
+	}
+
+	var users []*discordgo.User
+	for _, member := range members {
+		users = append(users, member.User)
+	}
+
+	err = RemoveRoleToUsers(discord, interaction, InGame, users)
+	if err != nil {
+		return err
+	}
+	
+	return nil
 }

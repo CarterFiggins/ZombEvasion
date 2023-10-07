@@ -9,11 +9,15 @@ var (
 		PingDetails,
 		SetupServerDetails,
 		JoinNextGameDetails,
+		StartGameDetails,
+		EndGameDetails,
 	}
 
 	CommandHandlers = map[string]func(discordS *discordgo.Session, interaction *discordgo.InteractionCreate){
-		"ping": Ping,
-		"setup-server": SetupServer,
-		"join-next-game": JoinNextGame,
+		PingDetails.Name: Ping,
+		SetupServerDetails.Name: SetupServer,
+		JoinNextGameDetails.Name: JoinNextGame,
+		StartGameDetails.Name: StartGame,
+		EndGameDetails.Name: EndGame,
 	}
 )
