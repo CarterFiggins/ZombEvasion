@@ -2,7 +2,6 @@ package mongo
 
 import (
 	"context"
-	"time"
 	"log"
 	"os"
 
@@ -23,7 +22,7 @@ func Connect() *mongo.Client {
 
 	log.Println("Setting up mongo...")
 
-	Ctx, Cancel = context.WithTimeout(context.Background(), 30 * time.Second)
+	Ctx, Cancel = context.WithCancel(context.Background())
 
 	client, err := mongo.Connect(Ctx, options.Client().ApplyURI(uri))
 	if err != nil {
