@@ -6,18 +6,14 @@ import (
 
 var (
 	Commands = []*discordgo.ApplicationCommand{
-		{
-			Name: "ping",
-			Description: "ping the bot",
-		},
-		{
-			Name: "setup-server",
-			Description: "adds the discord roles",
-		},
+		PingDetails,
+		SetupServerDetails,
+		JoinNextGameDetails,
 	}
 
 	CommandHandlers = map[string]func(discordS *discordgo.Session, interaction *discordgo.InteractionCreate){
 		"ping": Ping,
 		"setup-server": SetupServer,
+		"join-next-game": JoinNextGame,
 	}
 )

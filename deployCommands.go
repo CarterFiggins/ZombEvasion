@@ -27,9 +27,6 @@ func main() {
 	
 	defer discord.Close()
 	
-	discord.AddHandler(func(discord *discordgo.Session, r *discordgo.Ready) {
-		log.Printf("Logged in as: %v#%v", discord.State.User.Username, discord.State.User.Discriminator)
-	})
 
 	log.Println("Adding commands...")
 	for _, command := range commands.Commands {
@@ -37,6 +34,7 @@ func main() {
 		if err != nil {
 			log.Panicf("Cannot create '%v' command: %v", command.Name, err)
 		}
+		log.Printf("Added %s", command.Name)
 	}
 	log.Println("Commands added successfully")
 }
