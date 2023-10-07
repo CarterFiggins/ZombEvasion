@@ -30,6 +30,7 @@ func Start(discord *discordgo.Session, interaction *discordgo.InteractionCreate)
 		_, err := gameDb.InsertOne(mongo.Ctx, bson.D{
 			{Key: "discord_guild_id", Value: guildID},
 			{Key: "active", Value: true},
+			{Key: "board_name", Value: ""},
 		})
 		if err != nil {
 			return err

@@ -20,6 +20,11 @@ func Connect() *mongo.Client {
 		log.Fatal("Must set mongo uri as env variable: MONGO_URI")
 	}
 
+	dbName, ok := os.LookupEnv("MONGO_DB_NAME")
+	if !ok {
+		log.Fatal("Must set mongo db name as env variable: MONGO_DB_NAME")
+	}
+
 	log.Println("Setting up mongo...")
 
 	Ctx, Cancel = context.WithCancel(context.Background())
@@ -29,7 +34,7 @@ func Connect() *mongo.Client {
 		panic(err)
 	}
 
-	Db = client.Database("Infection")
+	Db = client.Database(dbName)
 	Client = client
 
 	return client
