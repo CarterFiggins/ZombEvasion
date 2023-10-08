@@ -2,16 +2,16 @@ package hexagonGrid
 
 import (
 	"math"
+	"fmt"
 	"image/color"
+	"errors"
 
 	"github.com/tdewolff/canvas"
 	"github.com/tdewolff/canvas/renderers"
 )
 
-func CreateGrid(board [][]Hex) {
-	var canvasSizeX float64 = 100
-	var canvasSizeY  float64 = 100
-	letterMap := map[int]string{
+var (
+	LetterMap = map[int]string{
 		0: "A",
 		1: "B",
 		2: "C",
@@ -39,6 +39,38 @@ func CreateGrid(board [][]Hex) {
 		24: "Y",
 		25: "Z",
 	}
+
+	Board = &GameBoard{}
+	Loaded = false
+)
+
+type GameBoard struct {
+	grid [][]Hex
+}
+
+func (g *GameBoard) LoadBoard() error {
+	g.grid = MainBoard()
+	Loaded = true
+	return CreateGridPng(g.grid)
+}
+func (g *GameBoard) UnloadGame() {
+	Board = &GameBoard{}
+	Loaded = false
+}
+
+func gridName(x, y int) (string, error) {
+	letter, ok := LetterMap[x]
+	if !ok {
+		return "", errors.New("no letter found in map!")
+	}
+
+	return fmt.Sprintf("%s%02d", letter, y), nil
+}
+
+func CreateGridPng(board [][]Hex) error {
+	var canvasSizeX float64 = 100
+	var canvasSizeY  float64 = 100
+
 	c := canvas.New(canvasSizeX, canvasSizeY)
 	ctx := canvas.NewContext(c)
 
@@ -67,9 +99,9 @@ func CreateGrid(board [][]Hex) {
 		}
 		for yIndex := 0; yIndex <= boardSizeY - 1; yIndex++ {
 			hex := board[xIndex][yIndex]
-			letter, ok := letterMap[xIndex]
+			letter, ok := LetterMap[xIndex]
 			if !ok {
-				panic("no letter found in map")
+				return errors.New("no letter found in map!")
 			}
 			hex.SetCol(letter)
 			hex.SetRow(yIndex)
@@ -79,7 +111,8 @@ func CreateGrid(board [][]Hex) {
 		}
 	}
 
-	renderers.Write("out.png", c, canvas.DPMM(8.0))
+	renderers.Write("gameBoard.png", c, canvas.DPMM(8.0))
+	return nil
 }
 
 

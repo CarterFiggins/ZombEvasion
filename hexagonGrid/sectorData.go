@@ -13,74 +13,8 @@ type Hex interface {
 	GetText() *canvas.Text
 	SetCol(string)
 	SetRow(int)
+	GetSector() interface{}
 }
-
-func TestBoard() [][]Hex{
-	return [][]Hex{
-		{
-			&hexTypes.WallSector{},
-			&hexTypes.SecureSector{},
-			&hexTypes.DangerousSector{},
-			&hexTypes.EscapeSector{EscapeNumber: 1},
-		},
-		{
-			&hexTypes.DangerousSector{},
-			&hexTypes.SecureSector{},
-			&hexTypes.WallSector{},
-			&hexTypes.ZombieSector{},
-		},
-		{
-			&hexTypes.WallSector{},
-			&hexTypes.DangerousSector{},
-			&hexTypes.SecureSector{},
-			&hexTypes.HumanSector{},
-		},
-		{
-			&hexTypes.SecureSector{},
-			&hexTypes.WallSector{},
-			&hexTypes.WallSector{},
-			&hexTypes.DangerousSector{},
-		},
-		{
-			&hexTypes.SecureSector{},
-			&hexTypes.WallSector{},
-			&hexTypes.WallSector{},
-			&hexTypes.DangerousSector{},
-		},
-		{
-			&hexTypes.SecureSector{},
-			&hexTypes.WallSector{},
-			&hexTypes.WallSector{},
-			&hexTypes.DangerousSector{},
-		},
-		{
-			&hexTypes.SecureSector{},
-			&hexTypes.SecureSector{},
-			&hexTypes.SecureSector{},
-			&hexTypes.DangerousSector{},
-		},
-		{
-			&hexTypes.SecureSector{},
-			&hexTypes.SecureSector{},
-			&hexTypes.SecureSector{},
-			&hexTypes.DangerousSector{},
-		},
-		{
-			&hexTypes.SecureSector{},
-			&hexTypes.SecureSector{},
-			&hexTypes.SecureSector{},
-			&hexTypes.DangerousSector{},
-		},
-		{
-			&hexTypes.SecureSector{},
-			&hexTypes.SecureSector{},
-			&hexTypes.SecureSector{},
-			&hexTypes.DangerousSector{},
-		},
-		
-	}
-}
-
 
 func MainBoard() [][]Hex{
 	return [][]Hex{
@@ -475,5 +409,71 @@ func MainBoard() [][]Hex{
 			&hexTypes.DangerousSector{},
 			&hexTypes.DangerousSector{},
 		},
+	}
+}
+
+func TestBoard() [][]Hex{
+	return [][]Hex{
+		{
+			&hexTypes.WallSector{},
+			&hexTypes.SecureSector{},
+			&hexTypes.DangerousSector{},
+			&hexTypes.EscapeSector{EscapeNumber: 1},
+		},
+		{
+			&hexTypes.DangerousSector{},
+			&hexTypes.SecureSector{},
+			&hexTypes.WallSector{},
+			&hexTypes.ZombieSector{},
+		},
+		{
+			&hexTypes.WallSector{},
+			&hexTypes.DangerousSector{},
+			&hexTypes.SecureSector{},
+			&hexTypes.HumanSector{},
+		},
+		{
+			&hexTypes.SecureSector{},
+			&hexTypes.WallSector{},
+			&hexTypes.WallSector{},
+			&hexTypes.DangerousSector{},
+		},
+		{
+			&hexTypes.SecureSector{},
+			&hexTypes.WallSector{},
+			&hexTypes.WallSector{},
+			&hexTypes.DangerousSector{},
+		},
+		{
+			&hexTypes.SecureSector{},
+			&hexTypes.WallSector{},
+			&hexTypes.WallSector{},
+			&hexTypes.DangerousSector{},
+		},
+		{
+			&hexTypes.SecureSector{},
+			&hexTypes.SecureSector{},
+			&hexTypes.SecureSector{},
+			&hexTypes.DangerousSector{},
+		},
+		{
+			&hexTypes.SecureSector{},
+			&hexTypes.SecureSector{},
+			&hexTypes.SecureSector{},
+			&hexTypes.DangerousSector{},
+		},
+		{
+			&hexTypes.SecureSector{},
+			&hexTypes.SecureSector{},
+			&hexTypes.SecureSector{},
+			&hexTypes.DangerousSector{},
+		},
+		{
+			&hexTypes.SecureSector{},
+			&hexTypes.SecureSector{},
+			&hexTypes.SecureSector{},
+			&hexTypes.DangerousSector{},
+		},
+		
 	}
 }

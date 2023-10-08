@@ -55,5 +55,4 @@ func newMessage(discord *discordgo.Session, message *discordgo.MessageCreate) {
 	case strings.Contains(message.Content, "bot"):
 		discord.ChannelMessageSend(message.ChannelID, "Hello Human!")
 	}
-
 }
