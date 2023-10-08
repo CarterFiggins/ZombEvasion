@@ -1,11 +1,10 @@
 package commands
 
 import (
-	"fmt"
 	"os"
+	"fmt"
 
 	"infection/bot/game"
-	"infection/hexagonGrid"
 	"github.com/bwmarrin/discordgo"
 )
 
@@ -22,14 +21,12 @@ func StartGame(discord *discordgo.Session, interaction *discordgo.InteractionCre
 	err := game.Start(discord, interaction)
 	if err != nil {
 		response.Flags = discordgo.MessageFlagsEphemeral
-		response.Content = err.Error()
-	}
-
-	if hexagonGrid.Board.loaded {
+		response.Content = fmt.Sprintf("ERROR: %v", err)
+	} else {
 		file, err := os.Open("./gameBoard.png")
 		if err != nil {
 			response.Flags = discordgo.MessageFlagsEphemeral
-			response.Content = err.Error()
+			response.Content = fmt.Sprintf("ERROR: %v", err)
 		} else {
 			response.Files = []*discordgo.File{
 				{

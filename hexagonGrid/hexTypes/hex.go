@@ -49,7 +49,7 @@ var (
 func HexName(x, y int) (string, error) {
 	letter, ok := LetterMap[x]
 	if !ok {
-		return "", errors.New("no letter found in map!")
+		return "", errors.New("No letter found in map!")
 	}
 
 	return fmt.Sprintf("%s%02d", letter, y), nil

@@ -10,10 +10,12 @@ var PingDetails = &discordgo.ApplicationCommand{
 }
 
 func Ping(discord *discordgo.Session, interaction *discordgo.InteractionCreate) {
+	response := &discordgo.InteractionResponseData{
+		Content: "PONG!",
+	}
+
 	discord.InteractionRespond(interaction.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
-		Data: &discordgo.InteractionResponseData{
-			Content: "PONG!",
-		},
+		Data: response,
 	})
 }

@@ -7,9 +7,9 @@ import (
 )
 
 type WallSector struct {
-	name string
-	col int
-	row int
+	Name string
+	Col int
+	Row int
 }
 
 func (s WallSector) GetColor() color.Color {
@@ -21,7 +21,7 @@ func (s WallSector) GetStrokeColor() color.Color {
 }
 
 func (s *WallSector) GetSectorName() string {
-	s.name = WallSectorName
+	s.Name = WallSectorName
 	return WallSectorName
 }
 
@@ -36,9 +36,9 @@ func (s WallSector) GetText() (*canvas.Text, error) {
 }
 
 func (s *WallSector) SetCol(col int) {
-	s.col = col
+	s.Col = col
 }
 
 func (s *WallSector) SetRow(row int) {
-	s.row = row
+	s.Row = row
 }

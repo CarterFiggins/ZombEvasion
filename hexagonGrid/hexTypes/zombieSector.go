@@ -7,9 +7,9 @@ import (
 )
 
 type ZombieSector struct {
-	name string
-	col int
-	row int
+	Name string
+	Col int
+	Row int
 }
 
 func (s ZombieSector) GetColor() color.Color {
@@ -21,7 +21,7 @@ func (s ZombieSector) GetStrokeColor() color.Color {
 }
 
 func (s *ZombieSector) GetSectorName() string {
-	s.name = ZombieSectorName
+	s.Name = ZombieSectorName
 	return ZombieSectorName
 }
 
@@ -36,9 +36,9 @@ func (s ZombieSector) GetText() (*canvas.Text, error) {
 }
 
 func (s *ZombieSector) SetCol(col int) {
-	s.col = col
+	s.Col = col
 }
 
 func (s *ZombieSector) SetRow(row int) {
-	s.row = row
+	s.Row = row
 }

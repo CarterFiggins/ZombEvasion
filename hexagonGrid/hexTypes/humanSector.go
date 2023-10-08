@@ -7,9 +7,9 @@ import (
 )
 
 type HumanSector struct {
-	name string
-	col int
-	row int
+	Name string
+	Col int
+	Row int
 }
 
 func (s HumanSector) GetColor() color.Color {
@@ -21,7 +21,7 @@ func (s HumanSector) GetStrokeColor() color.Color {
 }
 
 func (s *HumanSector) GetSectorName() string {
-	s.name = HumanSectorName
+	s.Name = HumanSectorName
 	return HumanSectorName
 }
 
@@ -36,9 +36,9 @@ func (s HumanSector) GetText() (*canvas.Text, error) {
 }
 
 func (s *HumanSector) SetCol(col int) {
-	s.col = col
+	s.Col = col
 }
 
 func (s *HumanSector) SetRow(row int) {
-	s.row = row
+	s.Row = row
 }

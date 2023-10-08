@@ -7,9 +7,9 @@ import (
 )
 
 type DangerousSector struct {
-	name string
-	col int
-	row int
+	Name string
+	Col int
+	Row int
 }
 
 func (s DangerousSector) GetColor() color.Color {
@@ -21,7 +21,7 @@ func (s DangerousSector) GetStrokeColor() color.Color {
 }
 
 func (s *DangerousSector) GetSectorName() string {
-	s.name = DangerousSectorName
+	s.Name = DangerousSectorName
 	return DangerousSectorName
 }
 
@@ -31,7 +31,7 @@ func (s DangerousSector) GetText() (*canvas.Text, error) {
 		return nil, err
 	}
 
-	hexName, err := HexName(s.col, s.row+1)
+	hexName, err := HexName(s.Col, s.Row+1)
 	if err != nil {
 		return nil, err
 	}
@@ -41,9 +41,9 @@ func (s DangerousSector) GetText() (*canvas.Text, error) {
 }
 
 func (s *DangerousSector) SetCol(col int) {
-	s.col = col
+	s.Col = col
 }
 
 func (s *DangerousSector) SetRow(row int) {
-	s.row = row
+	s.Row = row
 }

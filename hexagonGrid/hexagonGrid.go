@@ -10,26 +10,29 @@ import (
 
 var (
 	Board = &GameBoard{
-	loaded: false,
+	Loaded: false,
 	}
 )
 
 type GameBoard struct {
-	grid [][]Hex
-	loaded bool
-	humanSector *hexTypes.HumanSector
-	zombieSector *hexTypes.ZombieSector
+	Grid [][]Hex
+	Name string
+	Loaded bool
+	HumanSector *hexTypes.HumanSector
+	ZombieSector *hexTypes.ZombieSector
+	CurrentDiscordUserID string
 }
 
 func (g *GameBoard) LoadBoard() error {
-	g.grid = MainBoard()
-	Board.loaded = true
-	return CreateGameGrid(g.grid)
+	g.Grid = MainBoard()
+	g.Name = "main board"
+	g.Loaded = true
+	return CreateGameGrid(g.Grid)
 }
 
 func (g *GameBoard) UnloadGame() {
 	Board = &GameBoard{
-		loaded: false,
+		Loaded: false,
 	}
 }
 
@@ -69,10 +72,10 @@ func CreateGameGrid(board [][]Hex) error {
 			hex.SetRow(yIndex)
 			hexName := hex.GetSectorName()
 			if (hexName == hexTypes.HumanSectorName) {
-				Board.humanSector = hex.(*hexTypes.HumanSector)
+				Board.HumanSector = hex.(*hexTypes.HumanSector)
 			}
 			if (hexName == hexTypes.ZombieSectorName) {
-				Board.zombieSector = hex.(*hexTypes.ZombieSector)
+				Board.ZombieSector = hex.(*hexTypes.ZombieSector)
 			}
 			drawHex(ctx, x, y, hexRadius, strokeWidth, hex.GetColor(), hex.GetStrokeColor())
 			text, err := hex.GetText()

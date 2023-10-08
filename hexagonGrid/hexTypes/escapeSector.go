@@ -8,9 +8,9 @@ import (
 )
 
 type EscapeSector struct {
-	name string
-	col int
-	row int
+	Name string
+	Col int
+	Row int
 	EscapeNumber int
 }
 
@@ -23,7 +23,7 @@ func (s EscapeSector) GetStrokeColor() color.Color {
 }
 
 func (s *EscapeSector) GetSectorName() string {
-	s.name = EscapeSectorName
+	s.Name = EscapeSectorName
 	return EscapeSectorName
 }
 
@@ -38,9 +38,9 @@ func (s EscapeSector) GetText() (*canvas.Text, error) {
 }
 
 func (s *EscapeSector) SetCol(col int) {
-	s.col = col
+	s.Col = col
 }
 
 func (s *EscapeSector) SetRow(row int) {
-	s.row = row
+	s.Row = row
 }

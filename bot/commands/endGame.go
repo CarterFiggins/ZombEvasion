@@ -1,6 +1,8 @@
 package commands
 
 import (
+	"fmt"
+	
 	"infection/bot/game"
 	"github.com/bwmarrin/discordgo"
 )
@@ -11,17 +13,17 @@ var EndGameDetails = &discordgo.ApplicationCommand{
 }
 
 func EndGame(discord *discordgo.Session, interaction *discordgo.InteractionCreate) {
-	message := "Game Ended"
+	response := &discordgo.InteractionResponseData{
+		Content: "Game Ended",
+	}
 	err := game.End(discord, interaction)
 	if err != nil {
-		message = err.Error()
+		response.Content = fmt.Sprintf("ERROR: %v", err)
+		response.Flags = discordgo.MessageFlagsEphemeral
 	}
 
 	discord.InteractionRespond(interaction.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
-		Data: &discordgo.InteractionResponseData{
-			Content: message,
-			Flags: discordgo.MessageFlagsEphemeral,
-		},
+		Data: response,
 	})
 }

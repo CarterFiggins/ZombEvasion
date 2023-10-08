@@ -1,6 +1,8 @@
 package commands
 
 import (
+	"fmt"
+	
 	"infection/bot/role"
 	"github.com/bwmarrin/discordgo"
 )
@@ -11,17 +13,18 @@ var SetupServerDetails = &discordgo.ApplicationCommand{
 }
 
 func SetupServer(discord *discordgo.Session, interaction *discordgo.InteractionCreate) {
-	message := "Server is Ready!"
+	response := &discordgo.InteractionResponseData{
+		Content: "Server is Ready!",
+	}
 
 	err := role.SetUpRoles(discord, interaction)
 	if err != nil {
-		message = err.Error()
+		response.Flags = discordgo.MessageFlagsEphemeral
+		response.Content = fmt.Sprintf("ERROR: %v", err)
 	}
 
 	discord.InteractionRespond(interaction.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
-		Data: &discordgo.InteractionResponseData{
-			Content: message,
-		},
+		Data: response,
 	})
 }
