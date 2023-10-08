@@ -7,7 +7,8 @@ import (
 )
 
 type WallSector struct {
-	col string
+	name string
+	col int
 	row int
 }
 
@@ -19,16 +20,22 @@ func (s WallSector) GetStrokeColor() color.Color {
 	return canvas.Transparent
 }
 
-func (s WallSector) GetText() *canvas.Text {
-	fontFamily := canvas.NewFontFamily("times")
-	if err := fontFamily.LoadSystemFont("Nimbus Roman, serif", canvas.FontRegular); err != nil {
-		panic(err)
-	}
-	face := fontFamily.Face(8.0, canvas.Black, canvas.FontRegular, canvas.FontNormal)
-	return canvas.NewTextLine(face, "", canvas.Center)
+func (s *WallSector) GetSectorName() string {
+	s.name = WallSectorName
+	return WallSectorName
 }
 
-func (s *WallSector) SetCol(col string) {
+func (s WallSector) GetText() (*canvas.Text, error) {
+	fontFamily := canvas.NewFontFamily("times")
+	if err := fontFamily.LoadSystemFont("Nimbus Roman, serif", canvas.FontRegular); err != nil {
+		return nil, err
+	}
+
+	face := fontFamily.Face(8.0, canvas.Black, canvas.FontRegular, canvas.FontNormal)
+	return canvas.NewTextLine(face, "", canvas.Center), nil
+}
+
+func (s *WallSector) SetCol(col int) {
 	s.col = col
 }
 

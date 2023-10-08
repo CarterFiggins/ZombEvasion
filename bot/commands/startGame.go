@@ -25,7 +25,7 @@ func StartGame(discord *discordgo.Session, interaction *discordgo.InteractionCre
 		response.Content = err.Error()
 	}
 
-	if hexagonGrid.Loaded {
+	if hexagonGrid.Board.loaded {
 		file, err := os.Open("./gameBoard.png")
 		if err != nil {
 			response.Flags = discordgo.MessageFlagsEphemeral
@@ -40,8 +40,6 @@ func StartGame(discord *discordgo.Session, interaction *discordgo.InteractionCre
 			}
 		}
 	}
-
-	fmt.Println(response.Files)
 
 	discord.InteractionRespond(interaction.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,

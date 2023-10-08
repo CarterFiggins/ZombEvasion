@@ -7,7 +7,8 @@ import (
 )
 
 type HumanSector struct {
-	col string
+	name string
+	col int
 	row int
 }
 
@@ -19,16 +20,22 @@ func (s HumanSector) GetStrokeColor() color.Color {
 	return canvas.Black
 }
 
-func (s HumanSector) GetText() *canvas.Text {
-	fontFamily := canvas.NewFontFamily("times")
-	if err := fontFamily.LoadSystemFont("Nimbus Roman, serif", canvas.FontRegular); err != nil {
-		panic(err)
-	}
-	face := fontFamily.Face(8.0, canvas.White, canvas.FontRegular, canvas.FontNormal)
-	return canvas.NewTextLine(face, "H", canvas.Center)
+func (s *HumanSector) GetSectorName() string {
+	s.name = HumanSectorName
+	return HumanSectorName
 }
 
-func (s *HumanSector) SetCol(col string) {
+func (s HumanSector) GetText() (*canvas.Text, error) {
+	fontFamily := canvas.NewFontFamily("times")
+	if err := fontFamily.LoadSystemFont("Nimbus Roman, serif", canvas.FontRegular); err != nil {
+		return nil, err
+	}
+
+	face := fontFamily.Face(8.0, canvas.White, canvas.FontRegular, canvas.FontNormal)
+	return canvas.NewTextLine(face, "H", canvas.Center), nil
+}
+
+func (s *HumanSector) SetCol(col int) {
 	s.col = col
 }
 

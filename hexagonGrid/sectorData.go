@@ -10,10 +10,10 @@ import (
 type Hex interface {
 	GetColor() color.Color
 	GetStrokeColor() color.Color
-	GetText() *canvas.Text
-	SetCol(string)
+	GetText() (*canvas.Text, error)
+	SetCol(int)
 	SetRow(int)
-	GetSector() interface{}
+	GetSectorName() string
 }
 
 func MainBoard() [][]Hex{

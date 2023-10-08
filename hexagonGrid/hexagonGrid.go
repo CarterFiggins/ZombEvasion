@@ -2,72 +2,38 @@ package hexagonGrid
 
 import (
 	"math"
-	"fmt"
 	"image/color"
-	"errors"
-
+	"infection/hexagonGrid/hexTypes"
 	"github.com/tdewolff/canvas"
 	"github.com/tdewolff/canvas/renderers"
 )
 
 var (
-	LetterMap = map[int]string{
-		0: "A",
-		1: "B",
-		2: "C",
-		3: "D",
-		4: "E",
-		5: "F",
-		6: "G",
-		7: "H",
-		8: "I",
-		9: "J",
-		10: "K",
-		11: "L",
-		12: "M",
-		13: "N",
-		14: "O",
-		15: "P",
-		16: "Q",
-		17: "R",
-		18: "S",
-		19: "T",
-		20: "U",
-		21: "V",
-		22: "W",
-		23: "X",
-		24: "Y",
-		25: "Z",
+	Board = &GameBoard{
+	loaded: false,
 	}
-
-	Board = &GameBoard{}
-	Loaded = false
 )
 
 type GameBoard struct {
 	grid [][]Hex
+	loaded bool
+	humanSector *hexTypes.HumanSector
+	zombieSector *hexTypes.ZombieSector
 }
 
 func (g *GameBoard) LoadBoard() error {
 	g.grid = MainBoard()
-	Loaded = true
-	return CreateGridPng(g.grid)
+	Board.loaded = true
+	return CreateGameGrid(g.grid)
 }
+
 func (g *GameBoard) UnloadGame() {
-	Board = &GameBoard{}
-	Loaded = false
-}
-
-func gridName(x, y int) (string, error) {
-	letter, ok := LetterMap[x]
-	if !ok {
-		return "", errors.New("no letter found in map!")
+	Board = &GameBoard{
+		loaded: false,
 	}
-
-	return fmt.Sprintf("%s%02d", letter, y), nil
 }
 
-func CreateGridPng(board [][]Hex) error {
+func CreateGameGrid(board [][]Hex) error {
 	var canvasSizeX float64 = 100
 	var canvasSizeY  float64 = 100
 
@@ -99,14 +65,21 @@ func CreateGridPng(board [][]Hex) error {
 		}
 		for yIndex := 0; yIndex <= boardSizeY - 1; yIndex++ {
 			hex := board[xIndex][yIndex]
-			letter, ok := LetterMap[xIndex]
-			if !ok {
-				return errors.New("no letter found in map!")
-			}
-			hex.SetCol(letter)
+			hex.SetCol(xIndex)
 			hex.SetRow(yIndex)
+			hexName := hex.GetSectorName()
+			if (hexName == hexTypes.HumanSectorName) {
+				Board.humanSector = hex.(*hexTypes.HumanSector)
+			}
+			if (hexName == hexTypes.ZombieSectorName) {
+				Board.zombieSector = hex.(*hexTypes.ZombieSector)
+			}
 			drawHex(ctx, x, y, hexRadius, strokeWidth, hex.GetColor(), hex.GetStrokeColor())
-			ctx.DrawText(x, y, hex.GetText())
+			text, err := hex.GetText()
+			if err != nil {
+				return err
+			}
+			ctx.DrawText(x, y, text)
 			y =  y - height * 2
 		}
 	}
