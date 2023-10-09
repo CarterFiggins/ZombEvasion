@@ -8,8 +8,7 @@ import (
 
 type ZombieSector struct {
 	Name string
-	Col int
-	Row int
+	*Location
 }
 
 func (s ZombieSector) GetColor() color.Color {
@@ -35,10 +34,14 @@ func (s ZombieSector) GetText() (*canvas.Text, error) {
 	return canvas.NewTextLine(face, "Z", canvas.Center), nil
 }
 
-func (s *ZombieSector) SetCol(col int) {
-	s.Col = col
+func (s *ZombieSector) SetLocation(col int, row int) {
+	s.Location = &Location{
+		Col: col,
+		Row: row,
+	}
 }
 
-func (s *ZombieSector) SetRow(row int) {
-	s.Row = row
+
+func (s *ZombieSector) CanMoveHere() bool {
+	return false
 }

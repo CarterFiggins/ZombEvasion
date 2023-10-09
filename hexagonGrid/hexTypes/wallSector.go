@@ -8,8 +8,7 @@ import (
 
 type WallSector struct {
 	Name string
-	Col int
-	Row int
+	*Location
 }
 
 func (s WallSector) GetColor() color.Color {
@@ -35,10 +34,13 @@ func (s WallSector) GetText() (*canvas.Text, error) {
 	return canvas.NewTextLine(face, "", canvas.Center), nil
 }
 
-func (s *WallSector) SetCol(col int) {
-	s.Col = col
+func (s *WallSector) SetLocation(col int, row int) {
+	s.Location = &Location{
+		Col: col,
+		Row: row,
+	}
 }
 
-func (s *WallSector) SetRow(row int) {
-	s.Row = row
+func (s *WallSector) CanMoveHere() bool {
+	return false
 }

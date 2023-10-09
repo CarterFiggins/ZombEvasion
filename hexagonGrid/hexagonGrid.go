@@ -3,6 +3,7 @@ package hexagonGrid
 import (
 	"math"
 	"image/color"
+
 	"infection/hexagonGrid/hexTypes"
 	"github.com/tdewolff/canvas"
 	"github.com/tdewolff/canvas/renderers"
@@ -68,8 +69,7 @@ func CreateGameGrid(board [][]Hex) error {
 		}
 		for yIndex := 0; yIndex <= boardSizeY - 1; yIndex++ {
 			hex := board[xIndex][yIndex]
-			hex.SetCol(xIndex)
-			hex.SetRow(yIndex)
+			hex.SetLocation(xIndex, yIndex)
 			hexName := hex.GetSectorName()
 			if (hexName == hexTypes.HumanSectorName) {
 				Board.HumanSector = hex.(*hexTypes.HumanSector)

@@ -8,8 +8,7 @@ import (
 
 type HumanSector struct {
 	Name string
-	Col int
-	Row int
+	*Location
 }
 
 func (s HumanSector) GetColor() color.Color {
@@ -35,10 +34,13 @@ func (s HumanSector) GetText() (*canvas.Text, error) {
 	return canvas.NewTextLine(face, "H", canvas.Center), nil
 }
 
-func (s *HumanSector) SetCol(col int) {
-	s.Col = col
+func (s *HumanSector) SetLocation(col int, row int) {
+	s.Location = &Location{
+		Col: col,
+		Row: row,
+	}
 }
 
-func (s *HumanSector) SetRow(row int) {
-	s.Row = row
+func (s *HumanSector) CanMoveHere() bool {
+	return false
 }

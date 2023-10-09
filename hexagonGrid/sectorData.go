@@ -11,9 +11,9 @@ type Hex interface {
 	GetColor() color.Color
 	GetStrokeColor() color.Color
 	GetText() (*canvas.Text, error)
-	SetCol(int)
-	SetRow(int)
+	SetLocation(int, int)
 	GetSectorName() string
+	CanMoveHere() bool
 }
 
 func MainBoard() [][]Hex{

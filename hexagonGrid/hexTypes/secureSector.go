@@ -8,8 +8,7 @@ import (
 
 type SecureSector struct {
 	Name string
-	Col int
-	Row int
+	*Location
 }
 
 func (s SecureSector) GetColor() color.Color {
@@ -31,19 +30,17 @@ func (s SecureSector) GetText() (*canvas.Text, error) {
 		return nil, err
 	}
 
-	hexName, err := HexName(s.Col, s.Row+1)
-	if err != nil {
-		return nil, err
-	}
-
 	face := fontFamily.Face(5.0, canvas.Black, canvas.FontRegular, canvas.FontNormal)
-	return canvas.NewTextLine(face, hexName, canvas.Center), nil
+	return canvas.NewTextLine(face, s.Location.HexName(), canvas.Center), nil
 }
 
-func (s *SecureSector) SetCol(col int) {
-	s.Col = col
+func (s *SecureSector) SetLocation(col int, row int) {
+	s.Location = &Location{
+		Col: col,
+		Row: row,
+	}
 }
 
-func (s *SecureSector) SetRow(row int) {
-	s.Row = row
+func (s *SecureSector) CanMoveHere() bool {
+	return true
 }

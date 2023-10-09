@@ -8,8 +8,7 @@ import (
 
 type DangerousSector struct {
 	Name string
-	Col int
-	Row int
+	*Location
 }
 
 func (s DangerousSector) GetColor() color.Color {
@@ -31,19 +30,17 @@ func (s DangerousSector) GetText() (*canvas.Text, error) {
 		return nil, err
 	}
 
-	hexName, err := HexName(s.Col, s.Row+1)
-	if err != nil {
-		return nil, err
-	}
-
 	face := fontFamily.Face(5.0, canvas.Black, canvas.FontRegular, canvas.FontNormal)
-	return canvas.NewTextLine(face, hexName, canvas.Center), nil
+	return canvas.NewTextLine(face, s.Location.HexName(), canvas.Center), nil
 }
 
-func (s *DangerousSector) SetCol(col int) {
-	s.Col = col
+func (s *DangerousSector) SetLocation(col int, row int) {
+	s.Location = &Location{
+		Col: col,
+		Row: row,
+	}
 }
 
-func (s *DangerousSector) SetRow(row int) {
-	s.Row = row
+func (s *DangerousSector) CanMoveHere() bool {
+	return true
 }

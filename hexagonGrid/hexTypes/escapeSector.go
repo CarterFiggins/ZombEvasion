@@ -9,8 +9,7 @@ import (
 
 type EscapeSector struct {
 	Name string
-	Col int
-	Row int
+	*Location
 	EscapeNumber int
 }
 
@@ -37,10 +36,13 @@ func (s EscapeSector) GetText() (*canvas.Text, error) {
 	return canvas.NewTextLine(face, fmt.Sprintf("%d", s.EscapeNumber), canvas.Center), nil
 }
 
-func (s *EscapeSector) SetCol(col int) {
-	s.Col = col
+func (s *EscapeSector) SetLocation(col int, row int) {
+	s.Location = &Location{
+		Col: col,
+		Row: row,
+	}
 }
 
-func (s *EscapeSector) SetRow(row int) {
-	s.Row = row
+func (s *EscapeSector) CanMoveHere() bool {
+	return true
 }

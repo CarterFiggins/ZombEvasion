@@ -1,7 +1,6 @@
 package hexTypes
 
 import (
-	"errors"
 	"fmt"
 )
 
@@ -15,7 +14,36 @@ const (
 )
 
 var (
-	LetterMap = map[int]string{
+	LetterToNumMap = map[string]int{
+		"A": 0,
+		"B": 1,
+		"C": 2,
+		"D": 3,
+		"E": 4,
+		"F": 5,
+		"G": 6,
+		"H": 7,
+		"I": 8,
+		"J": 9,
+		"K": 10,
+		"L": 11,
+		"M": 12,
+		"N": 13,
+		"O": 14,
+		"P": 15,
+		"Q": 16,
+		"R": 17,
+		"S": 18,
+		"T": 19,
+		"U": 20,
+		"V": 21,
+		"W": 22,
+		"X": 23,
+		"Y": 24,
+		"Z": 25,
+	}
+
+	NumToLetterMap = map[int]string{
 		0: "A",
 		1: "B",
 		2: "C",
@@ -45,12 +73,16 @@ var (
 	}
 )
 
+type Location struct {
+	Col int
+	Row int
+}
 
-func HexName(x, y int) (string, error) {
-	letter, ok := LetterMap[x]
+func (l *Location) HexName() string {
+	letter, ok := NumToLetterMap[l.Col]
 	if !ok {
-		return "", errors.New("No letter found in map!")
+		panic("Build better letter system")
 	}
 
-	return fmt.Sprintf("%s%02d", letter, y), nil
+	return fmt.Sprintf("%s%02d", letter, l.Row + 1)
 }

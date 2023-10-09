@@ -9,6 +9,7 @@ import (
 	"infection/bot/role"
 	"infection/models"
 	"infection/hexagonGrid"
+	"infection/hexagonGrid/hexTypes"
 	"github.com/bwmarrin/discordgo"
 )
 
@@ -18,13 +19,17 @@ const (
 )
 
 func Start(discord *discordgo.Session, interaction *discordgo.InteractionCreate) error {
-	users, err := role.GetDiscordUsersFromRole(discord, interaction, role.WaitingForNextGame)
+	err := hexagonGrid.Board.LoadBoard()
 	if err != nil {
 		return err
 	}
+	if (!hexagonGrid.Board.Loaded) {
+		return errors.New("Board did not load")
+	}
 
-	if len(users) < 2 {
-		return errors.New("Not enough players (need more than one)")
+	users, err := role.GetDiscordUsersFromRole(discord, interaction, role.WaitingForNextGame)
+	if err != nil {
+		return err
 	}
 
 	err = role.MoveRoleToInGame(discord, interaction, users)
@@ -32,12 +37,8 @@ func Start(discord *discordgo.Session, interaction *discordgo.InteractionCreate)
 		return err
 	}
 
-	err = hexagonGrid.Board.LoadBoard()
-	if err != nil {
-		return err
-	}
-	if (!hexagonGrid.Board.Loaded) {
-		return errors.New("Board did not load")
+	if len(users) < 2 {
+		return errors.New("Not enough players (need more than one)")
 	}
 
 	// basic way to compute characters for now
@@ -60,13 +61,19 @@ func Start(discord *discordgo.Session, interaction *discordgo.InteractionCreate)
 		if i + 1 <= int(numOfHumans) {
 			// is human
 			mongoUser.Role = Human
-			mongoUser.X = hexagonGrid.Board.HumanSector.Col
-			mongoUser.Y = hexagonGrid.Board.HumanSector.Row
+			mongoUser.Location = &hexTypes.Location{
+				Col: hexagonGrid.Board.HumanSector.Col,
+				Row: hexagonGrid.Board.HumanSector.Row,
+			}
+			mongoUser.MaxMoves = 1
 		} else {
 			// is zombie
 			mongoUser.Role = Zombie
-			mongoUser.X = hexagonGrid.Board.ZombieSector.Col
-			mongoUser.Y = hexagonGrid.Board.ZombieSector.Row
+			mongoUser.Location = &hexTypes.Location{
+				Col: hexagonGrid.Board.ZombieSector.Col,
+				Row: hexagonGrid.Board.ZombieSector.Row,
+			}
+			mongoUser.MaxMoves = 2
 		}
 		mongoUsers = append(mongoUsers, mongoUser)
 	}

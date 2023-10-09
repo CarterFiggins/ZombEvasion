@@ -11,6 +11,7 @@ var (
 		JoinNextGameDetails,
 		StartGameDetails,
 		EndGameDetails,
+		MoveDetails,
 	}
 
 	CommandHandlers = map[string]func(discordS *discordgo.Session, interaction *discordgo.InteractionCreate){
@@ -19,5 +20,6 @@ var (
 		JoinNextGameDetails.Name: JoinNextGame,
 		StartGameDetails.Name: StartGame,
 		EndGameDetails.Name: EndGame,
+		MoveDetails.Name: Move,
 	}
 )
