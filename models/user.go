@@ -2,14 +2,14 @@ package models
 
 import (
 	"infection/mongo"
-	"infection/hexagonGrid/hexTypes"
+	"infection/hexagonGrid/hexSectors"
 
 	"go.mongodb.org/mongo-driver/bson"
 )
 
 type MongoUser struct {
 	Role string
-	*hexTypes.Location
+	*hexSectors.Location
 	MaxMoves int
 	DiscordUserID string
 	DiscordGuildID string
@@ -81,7 +81,7 @@ func MoveUser(guildID, discordUserID string, col, row int) error {
 func bsonUserToMongoUser(user bson.M) *MongoUser {
 	return &MongoUser{
 		Role: user["role"].(string),
-		Location: &hexTypes.Location{
+		Location: &hexSectors.Location{
 			Col: int(user["col"].(int32)),
 			Row: int(user["row"].(int32)),
 		},

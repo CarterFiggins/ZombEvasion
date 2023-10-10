@@ -1,4 +1,4 @@
-package hexTypes
+package hexSectors
 
 import (
 	"image/color"
@@ -6,25 +6,25 @@ import (
 	"github.com/tdewolff/canvas"
 )
 
-type HumanSector struct {
+type Human struct {
 	Name string
 	*Location
 }
 
-func (s HumanSector) GetColor() color.Color {
+func (s Human) GetColor() color.Color {
 	return canvas.Navy 
 }
 
-func (s HumanSector) GetStrokeColor() color.Color {
+func (s Human) GetStrokeColor() color.Color {
 	return canvas.Black
 }
 
-func (s *HumanSector) GetSectorName() string {
+func (s *Human) GetSectorName() string {
 	s.Name = HumanSectorName
 	return HumanSectorName
 }
 
-func (s HumanSector) GetText() (*canvas.Text, error) {
+func (s Human) GetText() (*canvas.Text, error) {
 	fontFamily := canvas.NewFontFamily("times")
 	if err := fontFamily.LoadSystemFont("Nimbus Roman, serif", canvas.FontRegular); err != nil {
 		return nil, err
@@ -34,13 +34,13 @@ func (s HumanSector) GetText() (*canvas.Text, error) {
 	return canvas.NewTextLine(face, "H", canvas.Center), nil
 }
 
-func (s *HumanSector) SetLocation(col int, row int) {
+func (s *Human) SetLocation(col int, row int) {
 	s.Location = &Location{
 		Col: col,
 		Row: row,
 	}
 }
 
-func (s *HumanSector) CanMoveHere() bool {
+func (s *Human) CanMoveHere() bool {
 	return false
 }

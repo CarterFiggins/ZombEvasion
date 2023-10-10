@@ -1,4 +1,4 @@
-package hexTypes
+package hexSectors
 
 import (
 	"fmt"
@@ -7,26 +7,26 @@ import (
 	"github.com/tdewolff/canvas"
 )
 
-type EscapeSector struct {
+type SafeHouse struct {
 	Name string
 	*Location
 	EscapeNumber int
 }
 
-func (s EscapeSector) GetColor() color.Color {
+func (s SafeHouse) GetColor() color.Color {
 	return canvas.Green
 }
 
-func (s EscapeSector) GetStrokeColor() color.Color {
+func (s SafeHouse) GetStrokeColor() color.Color {
 	return canvas.Black
 }
 
-func (s *EscapeSector) GetSectorName() string {
-	s.Name = EscapeSectorName
-	return EscapeSectorName
+func (s *SafeHouse) GetSectorName() string {
+	s.Name = SafeHouseName
+	return SafeHouseName
 }
 
-func (s EscapeSector) GetText() (*canvas.Text, error) {
+func (s SafeHouse) GetText() (*canvas.Text, error) {
 	fontFamily := canvas.NewFontFamily("times")
 	if err := fontFamily.LoadSystemFont("Nimbus Roman, serif", canvas.FontRegular); err != nil {
 		return nil, err
@@ -36,13 +36,13 @@ func (s EscapeSector) GetText() (*canvas.Text, error) {
 	return canvas.NewTextLine(face, fmt.Sprintf("%s\n%d", s.Location.GetHexName(), s.EscapeNumber), canvas.Center), nil
 }
 
-func (s *EscapeSector) SetLocation(col int, row int) {
+func (s *SafeHouse) SetLocation(col int, row int) {
 	s.Location = &Location{
 		Col: col,
 		Row: row,
 	}
 }
 
-func (s *EscapeSector) CanMoveHere() bool {
+func (s *SafeHouse) CanMoveHere() bool {
 	return true
 }

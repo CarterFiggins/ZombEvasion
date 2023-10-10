@@ -1,16 +1,16 @@
-package hexTypes
+package hexSectors
 
 import (
 	"fmt"
 )
 
 const (
-	DangerousSectorName string = "Dangerous Sector"
-	EscapeSectorName = "Escape Sector"
+	DangerousName string = "Dangerous Sector"
+	SafeHouseName = "Escape Sector"
 	HumanSectorName = "Human Sector"
-	SecureSectorName = "Secure Sector"
-	WallSectorName = "Wall Sector"
-	ZombieSectorName = "Zombie Sector"
+	SecureName = "Secure Sector"
+	WallName = "Wall Sector"
+	ZombieName = "Zombie Sector"
 )
 
 var (

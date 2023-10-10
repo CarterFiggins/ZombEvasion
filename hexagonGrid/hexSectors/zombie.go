@@ -1,4 +1,4 @@
-package hexTypes
+package hexSectors
 
 import (
 	"image/color"
@@ -6,25 +6,25 @@ import (
 	"github.com/tdewolff/canvas"
 )
 
-type ZombieSector struct {
+type Zombie struct {
 	Name string
 	*Location
 }
 
-func (s ZombieSector) GetColor() color.Color {
+func (s Zombie) GetColor() color.Color {
 	return canvas.Lawngreen 
 }
 
-func (s ZombieSector) GetStrokeColor() color.Color {
+func (s Zombie) GetStrokeColor() color.Color {
 	return canvas.Black
 }
 
-func (s *ZombieSector) GetSectorName() string {
-	s.Name = ZombieSectorName
-	return ZombieSectorName
+func (s *Zombie) GetSectorName() string {
+	s.Name = ZombieName
+	return ZombieName
 }
 
-func (s ZombieSector) GetText() (*canvas.Text, error) {
+func (s Zombie) GetText() (*canvas.Text, error) {
 	fontFamily := canvas.NewFontFamily("times")
 	if err := fontFamily.LoadSystemFont("Nimbus Roman, serif", canvas.FontRegular); err != nil {
 		return nil, err
@@ -34,7 +34,7 @@ func (s ZombieSector) GetText() (*canvas.Text, error) {
 	return canvas.NewTextLine(face, "Z", canvas.Center), nil
 }
 
-func (s *ZombieSector) SetLocation(col int, row int) {
+func (s *Zombie) SetLocation(col int, row int) {
 	s.Location = &Location{
 		Col: col,
 		Row: row,
@@ -42,6 +42,6 @@ func (s *ZombieSector) SetLocation(col int, row int) {
 }
 
 
-func (s *ZombieSector) CanMoveHere() bool {
+func (s *Zombie) CanMoveHere() bool {
 	return false
 }

@@ -4,7 +4,7 @@ import (
 	"math"
 	"image/color"
 
-	"infection/hexagonGrid/hexTypes"
+	"infection/hexagonGrid/hexSectors"
 	"github.com/tdewolff/canvas"
 	"github.com/tdewolff/canvas/renderers"
 )
@@ -19,8 +19,8 @@ type GameBoard struct {
 	Grid [][]Hex
 	Name string
 	Loaded bool
-	HumanSector *hexTypes.HumanSector
-	ZombieSector *hexTypes.ZombieSector
+	HumanSector *hexSectors.Human
+	ZombieSector *hexSectors.Zombie
 	CurrentDiscordUserID string
 }
 
@@ -71,11 +71,11 @@ func CreateGameGrid(board [][]Hex) error {
 			hex := board[xIndex][yIndex]
 			hex.SetLocation(xIndex, yIndex)
 			hexName := hex.GetSectorName()
-			if (hexName == hexTypes.HumanSectorName) {
-				Board.HumanSector = hex.(*hexTypes.HumanSector)
+			if (hexName == hexSectors.HumanSectorName) {
+				Board.HumanSector = hex.(*hexSectors.Human)
 			}
-			if (hexName == hexTypes.ZombieSectorName) {
-				Board.ZombieSector = hex.(*hexTypes.ZombieSector)
+			if (hexName == hexSectors.ZombieName) {
+				Board.ZombieSector = hex.(*hexSectors.Zombie)
 			}
 			drawHex(ctx, x, y, hexRadius, strokeWidth, hex.GetColor(), hex.GetStrokeColor())
 			text, err := hex.GetText()

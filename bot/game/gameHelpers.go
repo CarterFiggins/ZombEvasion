@@ -9,7 +9,7 @@ import (
 	"infection/bot/role"
 	"infection/models"
 	"infection/hexagonGrid"
-	"infection/hexagonGrid/hexTypes"
+	"infection/hexagonGrid/hexSectors"
 	"github.com/bwmarrin/discordgo"
 )
 
@@ -62,7 +62,7 @@ func Start(discord *discordgo.Session, interaction *discordgo.InteractionCreate)
 		if i + 1 <= int(numOfHumans) {
 			// is human
 			mongoUser.Role = Human
-			mongoUser.Location = &hexTypes.Location{
+			mongoUser.Location = &hexSectors.Location{
 				Col: hexagonGrid.Board.HumanSector.Col,
 				Row: hexagonGrid.Board.HumanSector.Row,
 			}
@@ -70,7 +70,7 @@ func Start(discord *discordgo.Session, interaction *discordgo.InteractionCreate)
 		} else {
 			// is zombie
 			mongoUser.Role = Zombie
-			mongoUser.Location = &hexTypes.Location{
+			mongoUser.Location = &hexSectors.Location{
 				Col: hexagonGrid.Board.ZombieSector.Col,
 				Row: hexagonGrid.Board.ZombieSector.Row,
 			}
@@ -119,11 +119,6 @@ func End(discord *discordgo.Session, interaction *discordgo.InteractionCreate) e
 	}
 
 	err = role.RemoveInGameRole(discord, interaction, users)
-	if err != nil {
-		return err
-	}
-
-	err = role.AddRoleToUsers(discord, interaction, role.WaitingForNextGame, users)
 	if err != nil {
 		return err
 	}

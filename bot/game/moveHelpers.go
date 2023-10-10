@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"infection/models"
-	"infection/hexagonGrid/hexTypes"
+	"infection/hexagonGrid/hexSectors"
 	"infection/hexagonGrid"
 	"github.com/bwmarrin/discordgo"
 )
@@ -20,7 +20,7 @@ func CanUserMoveHere(discord *discordgo.Session, interaction *discordgo.Interact
 		return &message, nil
 	}
 
-	moveHexName := hexTypes.GetHexName(moveX, moveY)
+	moveHexName := hexSectors.GetHexName(moveX, moveY)
 
 	sectorsToMove := GetMoveSectors(mongoUser)
 
@@ -30,7 +30,7 @@ func CanUserMoveHere(discord *discordgo.Session, interaction *discordgo.Interact
 	}
 
 	for _, sector := range sectorsToMove {
-		if sector == hexTypes.GetHexName(moveX, moveY) {
+		if sector == hexSectors.GetHexName(moveX, moveY) {
 			return nil, nil
 		}
 	}
@@ -49,7 +49,7 @@ func GetMoveSectors(mongoUser *models.MongoUser) []string {
 	return sectorSlice[1:]
 }
 
-func travelSectors(location *hexTypes.Location, sectorSlice *[]string, depth, limit int) {
+func travelSectors(location *hexSectors.Location, sectorSlice *[]string, depth, limit int) {
 	if depth == limit {
 		return
 	}
@@ -60,14 +60,14 @@ func travelSectors(location *hexTypes.Location, sectorSlice *[]string, depth, li
 		for i := location.Col - 1; i < location.Col + 2; i++ {
 			for j := location.Row - 1; j < location.Row + 1; j++ {
 				if canMoveHere(i, j) {
-					location := &hexTypes.Location{Col: i, Row: j}
+					location := &hexSectors.Location{Col: i, Row: j}
 					addSector(location, sectorSlice)
 					travelSectors(location, sectorSlice, depth + 1, limit)
 				}
 			}
 		}
 		if canMoveHere(location.Col, location.Row + 1) {
-			location := &hexTypes.Location{Col: location.Col, Row: location.Row - 1}
+			location := &hexSectors.Location{Col: location.Col, Row: location.Row - 1}
 			addSector(location, sectorSlice)
 			travelSectors(location, sectorSlice, depth + 1, limit)
 			
@@ -76,7 +76,7 @@ func travelSectors(location *hexTypes.Location, sectorSlice *[]string, depth, li
 		for i := location.Col - 1; i < location.Col + 2; i++ {
 			for j := location.Row; j < location.Row + 2; j++ {
 				if canMoveHere(i, j) {
-					location := &hexTypes.Location{Col: i, Row: j}
+					location := &hexSectors.Location{Col: i, Row: j}
 					addSector(location, sectorSlice)
 					travelSectors(location, sectorSlice, depth + 1, limit)
 					
@@ -84,7 +84,7 @@ func travelSectors(location *hexTypes.Location, sectorSlice *[]string, depth, li
 			}
 		}
 		if canMoveHere(location.Col, location.Row - 1) {
-			location := &hexTypes.Location{Col: location.Col, Row: location.Row - 1}
+			location := &hexSectors.Location{Col: location.Col, Row: location.Row - 1}
 			addSector(location, sectorSlice)
 			travelSectors(location, sectorSlice, depth + 1, limit)
 		}
@@ -105,7 +105,7 @@ func canMoveHere(col, row int) bool {
 	return true
 }
 
-func addSector(location *hexTypes.Location, sectorSlice *[]string) bool {
+func addSector(location *hexSectors.Location, sectorSlice *[]string) bool {
 	hexName := location.GetHexName()
 
 	for _, name := range *sectorSlice {

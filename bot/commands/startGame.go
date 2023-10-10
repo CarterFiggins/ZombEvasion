@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"infection/bot/game"
+	"infection/bot/role"
 	"github.com/bwmarrin/discordgo"
 )
 
@@ -17,7 +18,7 @@ func StartGame(discord *discordgo.Session, interaction *discordgo.InteractionCre
 	if ok := CheckPermissions(discord, interaction, []string{role.Admin}); !ok {
 		return
 	}
-	
+
 	discord.InteractionRespond(interaction.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseDeferredChannelMessageWithSource,
 	})

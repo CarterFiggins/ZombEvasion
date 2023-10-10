@@ -1,4 +1,4 @@
-package hexTypes
+package hexSectors
 
 import (
 	"image/color"
@@ -6,25 +6,25 @@ import (
 	"github.com/tdewolff/canvas"
 )
 
-type SecureSector struct {
+type Dangerous struct {
 	Name string
 	*Location
 }
 
-func (s SecureSector) GetColor() color.Color {
-	return canvas.White
+func (s Dangerous) GetColor() color.Color {
+	return canvas.Gray
 }
 
-func (s SecureSector) GetStrokeColor() color.Color {
+func (s Dangerous) GetStrokeColor() color.Color {
 	return canvas.Black
 }
 
-func (s *SecureSector) GetSectorName() string {
-	s.Name = SecureSectorName
-	return SecureSectorName
+func (s *Dangerous) GetSectorName() string {
+	s.Name = DangerousName
+	return DangerousName
 }
 
-func (s SecureSector) GetText() (*canvas.Text, error) {
+func (s Dangerous) GetText() (*canvas.Text, error) {
 	fontFamily := canvas.NewFontFamily("times")
 	if err := fontFamily.LoadSystemFont("Nimbus Roman, serif", canvas.FontRegular); err != nil {
 		return nil, err
@@ -34,13 +34,13 @@ func (s SecureSector) GetText() (*canvas.Text, error) {
 	return canvas.NewTextLine(face, s.Location.GetHexName(), canvas.Center), nil
 }
 
-func (s *SecureSector) SetLocation(col int, row int) {
+func (s *Dangerous) SetLocation(col int, row int) {
 	s.Location = &Location{
 		Col: col,
 		Row: row,
 	}
 }
 
-func (s *SecureSector) CanMoveHere() bool {
+func (s *Dangerous) CanMoveHere() bool {
 	return true
 }

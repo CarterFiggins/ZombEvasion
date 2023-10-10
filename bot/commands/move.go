@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"infection/models"
-	"infection/hexagonGrid/hexTypes"
+	"infection/hexagonGrid/hexSectors"
 	"infection/hexagonGrid"
 	"infection/bot/game"
 	"github.com/bwmarrin/discordgo"
@@ -43,7 +43,7 @@ func Move(discord *discordgo.Session, interaction *discordgo.InteractionCreate) 
 	options := interaction.ApplicationCommandData().Options
 	letter := strings.ToUpper(options[0].Value.(string))
 	moveY := int(options[1].Value.(float64)) - 1
-	moveX := hexTypes.LetterToNumMap[letter]
+	moveX := hexSectors.LetterToNumMap[letter]
 
 	message, err := game.CanUserMoveHere(discord, interaction, moveX, moveY);
 	if err != nil {
@@ -61,12 +61,12 @@ func Move(discord *discordgo.Session, interaction *discordgo.InteractionCreate) 
 			)
 			sector := hexagonGrid.Board.Grid[moveX][moveY]
 			sectorName := sector.GetSectorName()
-			if (sectorName == hexTypes.EscapeSectorName) {
+			if (sectorName == hexSectors.SafeHouseName) {
 				response.Content = "You Have Escaped!"
 				// TODO: Check game, let other know you escaped, Also don't let zombies escape!
 				
 			} else {
-				response.Content = fmt.Sprintf("You moved to a %s located at: %s", sectorName, hexTypes.GetHexName(moveX, moveY))
+				response.Content = fmt.Sprintf("You moved to a %s located at: %s", sectorName, hexSectors.GetHexName(moveX, moveY))
 				// Print out what happen at location (noise or all clear or setOffNoise)
 			}
 

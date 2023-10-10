@@ -1,4 +1,4 @@
-package hexTypes
+package hexSectors
 
 import (
 	"image/color"
@@ -6,25 +6,25 @@ import (
 	"github.com/tdewolff/canvas"
 )
 
-type WallSector struct {
+type Wall struct {
 	Name string
 	*Location
 }
 
-func (s WallSector) GetColor() color.Color {
+func (s Wall) GetColor() color.Color {
 	return canvas.Transparent
 }
 
-func (s WallSector) GetStrokeColor() color.Color {
+func (s Wall) GetStrokeColor() color.Color {
 	return canvas.Transparent
 }
 
-func (s *WallSector) GetSectorName() string {
-	s.Name = WallSectorName
-	return WallSectorName
+func (s *Wall) GetSectorName() string {
+	s.Name = WallName
+	return WallName
 }
 
-func (s WallSector) GetText() (*canvas.Text, error) {
+func (s Wall) GetText() (*canvas.Text, error) {
 	fontFamily := canvas.NewFontFamily("times")
 	if err := fontFamily.LoadSystemFont("Nimbus Roman, serif", canvas.FontRegular); err != nil {
 		return nil, err
@@ -34,13 +34,13 @@ func (s WallSector) GetText() (*canvas.Text, error) {
 	return canvas.NewTextLine(face, "", canvas.Center), nil
 }
 
-func (s *WallSector) SetLocation(col int, row int) {
+func (s *Wall) SetLocation(col int, row int) {
 	s.Location = &Location{
 		Col: col,
 		Row: row,
 	}
 }
 
-func (s *WallSector) CanMoveHere() bool {
+func (s *Wall) CanMoveHere() bool {
 	return false
 }
