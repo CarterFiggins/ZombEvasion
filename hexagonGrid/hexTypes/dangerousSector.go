@@ -31,7 +31,7 @@ func (s DangerousSector) GetText() (*canvas.Text, error) {
 	}
 
 	face := fontFamily.Face(5.0, canvas.Black, canvas.FontRegular, canvas.FontNormal)
-	return canvas.NewTextLine(face, s.Location.HexName(), canvas.Center), nil
+	return canvas.NewTextLine(face, s.Location.GetHexName(), canvas.Center), nil
 }
 
 func (s *DangerousSector) SetLocation(col int, row int) {

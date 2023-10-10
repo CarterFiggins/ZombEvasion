@@ -13,6 +13,56 @@ const (
 	InGame = "InGame"
 )
 
+func isAdmin(discord *discordgo.Session, interaction *discordgo.InteractionCreate) (bool, error) {
+	roleMap, err := CreateRoleMap(discord, interaction)
+	if err != nil {
+		return false, err
+	}
+	adminRole, ok := roleMap[Admin]
+	if (!ok) {
+		return false, errors.New("role not found. Might need to run `/setup-server` to add the roles.")
+	}
+	roles := interaction.Interaction.Member.Roles
+	for _, roleID := range roles {
+		if roleID == adminRole.ID {
+			return true, nil
+		}
+	}
+	return false, nil
+}
+
+func UserHasRoles(discord *discordgo.Session, interaction *discordgo.InteractionCreate, roles []string) (bool, error) {
+	hasRoleMap := make(map[string]bool)
+	for _, role := range roles {
+		hasRoleMap[role] = false
+	}
+	
+	roleMap, err := CreateRoleMap(discord, interaction)
+	if err != nil {
+		return false, err
+	}
+
+	userRoles := interaction.Interaction.Member.Roles
+	for _, roleName := range roles {
+		role, ok := roleMap[roleName]
+		if !ok {
+			continue
+		}
+		for _, userRoleID := range userRoles {
+			if userRoleID == role.ID {
+				hasRoleMap[roleName] = true
+			}
+		}
+	}
+
+	for _, isRole := range hasRoleMap {
+		if !isRole {
+			return false, nil
+		}
+	}
+	return true, nil
+}
+
 func SetUpRoles(discord *discordgo.Session, interaction *discordgo.InteractionCreate) error{
 	log.Println("SetUpRoles on discord")
 	guildID := interaction.Interaction.GuildID

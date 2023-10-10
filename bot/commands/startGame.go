@@ -14,6 +14,10 @@ var StartGameDetails = &discordgo.ApplicationCommand{
 }
 
 func StartGame(discord *discordgo.Session, interaction *discordgo.InteractionCreate) {
+	if ok := CheckPermissions(discord, interaction, []string{role.Admin}); !ok {
+		return
+	}
+	
 	discord.InteractionRespond(interaction.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseDeferredChannelMessageWithSource,
 	})

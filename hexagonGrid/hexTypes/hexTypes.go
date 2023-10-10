@@ -78,11 +78,20 @@ type Location struct {
 	Row int
 }
 
-func (l *Location) HexName() string {
+func (l *Location) GetHexName() string {
 	letter, ok := NumToLetterMap[l.Col]
 	if !ok {
 		panic("Build better letter system")
 	}
 
 	return fmt.Sprintf("%s%02d", letter, l.Row + 1)
+}
+
+func GetHexName(x, y int) string {
+	letter, ok := NumToLetterMap[x]
+	if !ok {
+		panic("Build better letter system")
+	}
+
+	return fmt.Sprintf("%s%02d", letter, y + 1)
 }

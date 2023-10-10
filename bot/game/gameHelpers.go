@@ -56,6 +56,7 @@ func Start(discord *discordgo.Session, interaction *discordgo.InteractionCreate)
 			DiscordUserID: user.ID,
 			DiscordGuildID: interaction.Interaction.GuildID,
 			DiscordUsername: user.Username,
+			Moved: false,
 		}
 
 		if i + 1 <= int(numOfHumans) {
@@ -118,6 +119,11 @@ func End(discord *discordgo.Session, interaction *discordgo.InteractionCreate) e
 	}
 
 	err = role.RemoveInGameRole(discord, interaction, users)
+	if err != nil {
+		return err
+	}
+
+	err = role.AddRoleToUsers(discord, interaction, role.WaitingForNextGame, users)
 	if err != nil {
 		return err
 	}

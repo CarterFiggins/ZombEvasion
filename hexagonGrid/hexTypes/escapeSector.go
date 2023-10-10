@@ -32,8 +32,8 @@ func (s EscapeSector) GetText() (*canvas.Text, error) {
 		return nil, err
 	}
 
-	face := fontFamily.Face(6.0, canvas.Black, canvas.FontRegular, canvas.FontNormal)
-	return canvas.NewTextLine(face, fmt.Sprintf("%d", s.EscapeNumber), canvas.Center), nil
+	face := fontFamily.Face(4.0, canvas.Black, canvas.FontRegular, canvas.FontNormal)
+	return canvas.NewTextLine(face, fmt.Sprintf("%s\n%d", s.Location.GetHexName(), s.EscapeNumber), canvas.Center), nil
 }
 
 func (s *EscapeSector) SetLocation(col int, row int) {

@@ -10,35 +10,38 @@ import (
 )
 
 func CanUserMoveHere(discord *discordgo.Session, interaction *discordgo.InteractionCreate, moveX int, moveY int) (*string, error) {
-
-	// check if out of grid range
-
-	moveHexName := fmt.Sprintf("%s%02d", hexTypes.NumToLetterMap[moveX], moveY)
-
 	mongoUser, err := models.FindUser(interaction.Interaction.GuildID, interaction.Interaction.Member.User.ID)
 	if err != nil {
 		return nil, err
 	}
+
+	if (mongoUser.Moved) {
+		message := "You have already moved this turn use `/end-turn` to pass it to the next player"
+		return &message, nil
+	}
+
+	moveHexName := hexTypes.GetHexName(moveX, moveY)
+
 	sectorsToMove := GetMoveSectors(mongoUser)
-	
+
 	if (moveX == mongoUser.Col && moveY == mongoUser.Row) {
-		message := fmt.Sprintf("This is your current position: %s.\nAvailable sectors to move: %v", mongoUser.Location.HexName(), sectorsToMove)
+		message := fmt.Sprintf("You can't move to your current position: %s.\nAvailable sectors to move: %v", mongoUser.Location.GetHexName(), sectorsToMove)
 		return &message, nil
 	}
 
 	for _, sector := range sectorsToMove {
-		if sector == fmt.Sprintf("%s%02d", hexTypes.NumToLetterMap[moveX], moveY) {
+		if sector == hexTypes.GetHexName(moveX, moveY) {
 			return nil, nil
 		}
 	}
 
-	message := fmt.Sprintf("You can't move to position: %s.\nCurrent position: %s\nAvailable sectors to move: %v", moveHexName, mongoUser.Location.HexName(), sectorsToMove)
+	message := fmt.Sprintf("You can't move to position: %s.\nCurrent position: %s\nAvailable sectors to move: %v", moveHexName, mongoUser.Location.GetHexName(), sectorsToMove)
 	return &message, nil
 }
 
 func GetMoveSectors(mongoUser *models.MongoUser) []string {
 	sectorSlice := []string{
-		mongoUser.Location.HexName(),
+		mongoUser.Location.GetHexName(),
 	}
 
 	travelSectors(mongoUser.Location, &sectorSlice, 0, mongoUser.MaxMoves)
@@ -103,7 +106,7 @@ func canMoveHere(col, row int) bool {
 }
 
 func addSector(location *hexTypes.Location, sectorSlice *[]string) bool {
-	hexName := location.HexName()
+	hexName := location.GetHexName()
 
 	for _, name := range *sectorSlice {
 		if name == hexName {

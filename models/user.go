@@ -16,6 +16,7 @@ type MongoUser struct {
 	DiscordUsername string
 	NextDiscordUserID string
 	PrevDiscordUserID string
+	Moved bool
 }
 
 func CreateMongoUsers(mongoUsers []*MongoUser) error {
@@ -25,6 +26,7 @@ func CreateMongoUsers(mongoUsers []*MongoUser) error {
 			{Key: "role", Value: user.Role},
 			{Key: "col", Value: user.Col},
 			{Key: "row", Value: user.Row},
+			{Key: "moved", Value: user.Moved},
 			{Key: "max_moves", Value: user.MaxMoves},
 			{Key: "discord_user_id", Value: user.DiscordUserID},
 			{Key: "discord_guild_id", Value: user.DiscordGuildID},
@@ -58,6 +60,24 @@ func DeleteAllUsers(guildID string) error {
 	return nil
 }
 
+func MoveUser(guildID, discordUserID string, col, row int) error {
+	userDb := mongo.Db.Collection("users")
+
+	_, err := userDb.UpdateOne(
+		mongo.Ctx,
+		bson.M{"discord_guild_id": guildID, "discord_user_id": discordUserID},
+		bson.D{
+			{"$set", bson.D{{"col", col}}},
+			{"$set", bson.D{{"row", row}}},
+			{"$set", bson.D{{"moved", true}}},
+		},
+	)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func bsonUserToMongoUser(user bson.M) *MongoUser {
 	return &MongoUser{
 		Role: user["role"].(string),
@@ -65,6 +85,7 @@ func bsonUserToMongoUser(user bson.M) *MongoUser {
 			Col: int(user["col"].(int32)),
 			Row: int(user["row"].(int32)),
 		},
+		Moved: user["moved"].(bool),
 		MaxMoves: int(user["max_moves"].(int32)),
 		DiscordUserID: user["discord_user_id"].(string),
 		DiscordGuildID: user["discord_guild_id"].(string),
