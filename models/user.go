@@ -5,6 +5,7 @@ import (
 	"infection/hexagonGrid/hexSectors"
 
 	"go.mongodb.org/mongo-driver/bson"
+	"github.com/bwmarrin/discordgo"
 )
 
 type MongoUser struct {
@@ -60,12 +61,15 @@ func DeleteAllUsers(guildID string) error {
 	return nil
 }
 
-func MoveUser(guildID, discordUserID string, col, row int) error {
+func MoveUser(interaction *discordgo.InteractionCreate, col, row int) error {
 	userDb := mongo.Db.Collection("users")
 
 	_, err := userDb.UpdateOne(
 		mongo.Ctx,
-		bson.M{"discord_guild_id": guildID, "discord_user_id": discordUserID},
+		bson.M{
+			"discord_guild_id": interaction.Interaction.GuildID,
+			"discord_user_id": interaction.Interaction.Member.User.ID,
+		},
 		bson.D{
 			{"$set", bson.D{{"col", col}}},
 			{"$set", bson.D{{"row", row}}},

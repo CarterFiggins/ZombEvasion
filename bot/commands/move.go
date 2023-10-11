@@ -47,31 +47,29 @@ func Move(discord *discordgo.Session, interaction *discordgo.InteractionCreate) 
 
 	message, err := game.CanUserMoveHere(discord, interaction, moveX, moveY);
 	if err != nil {
-		response.Content = fmt.Sprintf("ERROR: %v", err)
+		RespondWithError(discord, interaction, err)
+		return
+	}
+	if message != nil {
+		response.Content = *message
 	} else {
-		if message != nil {
-			response.Content = *message
+		err = models.MoveUser(interaction, moveX, moveY)
+		if err != nil {
+			RespondWithError(discord, interaction, err)
+			return
+		}
+		sector := hexagonGrid.Board.Grid[moveX][moveY]
+		sectorName := sector.GetSectorName()
+		if (sectorName == hexSectors.SafeHouseName) {
+			response.Content = "You Have Escaped!"
+			// TODO: Check game, let other know you escaped, Also don't let zombies escape!
+			
 		} else {
-			// move user here
-			models.MoveUser(
-				interaction.Interaction.GuildID,
-				interaction.Interaction.Member.User.ID,
-				moveX,
-				moveY,
-			)
-			sector := hexagonGrid.Board.Grid[moveX][moveY]
-			sectorName := sector.GetSectorName()
-			if (sectorName == hexSectors.SafeHouseName) {
-				response.Content = "You Have Escaped!"
-				// TODO: Check game, let other know you escaped, Also don't let zombies escape!
-				
-			} else {
-				response.Content = fmt.Sprintf("You moved to a %s located at: %s", sectorName, hexSectors.GetHexName(moveX, moveY))
-				// Print out what happen at location (noise or all clear or setOffNoise)
-			}
-
+			response.Content = fmt.Sprintf("You moved to a %s located at: %s", sectorName, hexSectors.GetHexName(moveX, moveY))
+			// Print out what happen at location (noise or all clear or setOffNoise)
 		}
 	}
+	
 
 	discord.InteractionRespond(interaction.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,

@@ -24,7 +24,8 @@ func EndGame(discord *discordgo.Session, interaction *discordgo.InteractionCreat
 
 	err := game.End(discord, interaction)
 	if err != nil {
-		response.Content = fmt.Sprintf("ERROR: %v", err)
+		RespondWithError(discord, interaction, err)
+		return
 	}
 
 	discord.InteractionRespond(interaction.Interaction, &discordgo.InteractionResponse{

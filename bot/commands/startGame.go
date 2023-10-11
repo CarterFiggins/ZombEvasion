@@ -30,21 +30,21 @@ func StartGame(discord *discordgo.Session, interaction *discordgo.InteractionCre
 
 	err := game.Start(discord, interaction)
 	if err != nil {
-		message = fmt.Sprintf("ERROR: %v", err)
-	} else {
-		file, err := os.Open("./gameBoard.png")
-		if err != nil {
-			message = fmt.Sprintf("ERROR: %v", err)
-		} else {
-			response.Files = []*discordgo.File{
-				{
-					ContentType: "image/png",
-					Name: "gameBoard.png",
-					Reader: file,
-				},
-			}
-		}
+		RespondEditWithError(discord, interaction, err)
+		return	
+	} 
+	file, err := os.Open("./gameBoard.png")
+	if err != nil {
+		RespondEditWithError(discord, interaction, err)
+		return	
+	} 
+	response.Files = []*discordgo.File{
+		{
+			ContentType: "image/png",
+			Name: "gameBoard.png",
+			Reader: file,
+		},
 	}
-
+	
 	discord.InteractionResponseEdit(interaction.Interaction, response)
 }

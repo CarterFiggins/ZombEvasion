@@ -53,3 +53,20 @@ func CheckPermissions(discord *discordgo.Session, interaction *discordgo.Interac
 	}
 	return true
 }
+
+func RespondWithError(discord *discordgo.Session, interaction *discordgo.InteractionCreate, err error) {
+	discord.InteractionRespond(interaction.Interaction, &discordgo.InteractionResponse{
+		Type: discordgo.InteractionResponseChannelMessageWithSource,
+		Data: &discordgo.InteractionResponseData{
+			Content: fmt.Sprintf("ERROR: %v", err),
+			Flags: discordgo.MessageFlagsEphemeral,
+		},
+	})
+}
+
+func RespondEditWithError(discord *discordgo.Session, interaction *discordgo.InteractionCreate, err error) {
+	message = fmt.Sprintf("ERROR: %v", err)
+	discord.InteractionResponseEdit(interaction.Interaction, &discordgo.WebhookEdit{
+		Content: &message,
+	})
+}

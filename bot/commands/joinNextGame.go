@@ -20,8 +20,8 @@ func JoinNextGame(discord *discordgo.Session, interaction *discordgo.Interaction
 
 	err := role.AddRole(discord, interaction, role.WaitingForNextGame)
 	if err != nil {
-		response.Content = fmt.Sprintf("ERROR: %v", err)
-		response.Flags = discordgo.MessageFlagsEphemeral
+		RespondWithError(discord, interaction, err)
+		return
 	}
 
 	discord.InteractionRespond(interaction.Interaction, &discordgo.InteractionResponse{

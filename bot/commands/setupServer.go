@@ -19,8 +19,8 @@ func SetupServer(discord *discordgo.Session, interaction *discordgo.InteractionC
 
 	err := role.SetUpRoles(discord, interaction)
 	if err != nil {
-		response.Flags = discordgo.MessageFlagsEphemeral
-		response.Content = fmt.Sprintf("ERROR: %v", err)
+		RespondWithError(discord, interaction, err)
+		return
 	}
 
 	discord.InteractionRespond(interaction.Interaction, &discordgo.InteractionResponse{
