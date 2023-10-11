@@ -1,8 +1,6 @@
 package commands
 
 import (
-	"fmt"
-	
 	"infection/bot/game"
 	"infection/bot/role"
 	"github.com/bwmarrin/discordgo"

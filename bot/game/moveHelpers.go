@@ -2,12 +2,47 @@ package game
 
 import (
 	"fmt"
+	"math/rand"
+	"time"
 
 	"infection/models"
 	"infection/hexagonGrid/hexSectors"
 	"infection/hexagonGrid"
 	"github.com/bwmarrin/discordgo"
 )
+
+func MovedOnSectorMessages(interaction *discordgo.InteractionCreate, sectorName, hexName string) (string, string) {
+	// TODO: DON'T LET ZOMBIES ESCAPE!!!
+	if (sectorName == hexSectors.SafeHouseName) {
+		userMessage := "You made it to the Save House!"
+		turnMessage := fmt.Sprintf("%v has made it to the save house!", interaction.Interaction.Member.User.Mention())
+		// TODO: update user to safe house and move them out of the game
+		return turnMessage, userMessage
+	}
+
+	turnMessage := "Silence No alarm"
+	userMessage := fmt.Sprintf("You moved to a %s located at: %s\n Silence. No alarms where set off", sectorName, hexName)
+
+	if (sectorName == hexSectors.DangerousName) {
+		rand.Seed(time.Now().UnixNano())
+		randNum := rand.Intn(10)
+		// 40% chance green
+		if randNum >= 0 && randNum <= 3 {
+			userMessage =fmt.Sprintf("You moved to a %s located at: %s\n You get to set off an alarm in another sector. Use `/set-off-alarm` to pick location", sectorName, hexName)
+		}
+		// 40% chance ren
+		if randNum >= 4 && randNum <= 7 {
+			userMessage = fmt.Sprintf("You moved to a %s located at: %s\n The Alarm was set off!", sectorName, hexName)
+			turnMessage = fmt.Sprintf("ALERT! Alarm set off at %s", hexName)
+		}
+		// 20% change silence
+		if randNum >= 8 && randNum <= 9 {
+			userMessage = fmt.Sprintf("You moved to a %s located at: %s\n Silence. No alarms where set off", sectorName, hexName)
+		}
+	}
+
+	return turnMessage, userMessage
+}
 
 func CanUserMoveHere(discord *discordgo.Session, interaction *discordgo.InteractionCreate, moveX int, moveY int) (*string, error) {
 	mongoUser, err := models.FindUser(interaction.Interaction.GuildID, interaction.Interaction.Member.User.ID)

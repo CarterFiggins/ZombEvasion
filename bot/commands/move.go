@@ -1,13 +1,13 @@
 package commands
 
 import (
-	"fmt"
 	"strings"
 
 	"infection/models"
 	"infection/hexagonGrid/hexSectors"
 	"infection/hexagonGrid"
 	"infection/bot/game"
+	"infection/bot/channel"
 	"github.com/bwmarrin/discordgo"
 )
 
@@ -60,16 +60,14 @@ func Move(discord *discordgo.Session, interaction *discordgo.InteractionCreate) 
 		}
 		sector := hexagonGrid.Board.Grid[moveX][moveY]
 		sectorName := sector.GetSectorName()
-		if (sectorName == hexSectors.SafeHouseName) {
-			response.Content = "You Have Escaped!"
-			// TODO: Check game, let other know you escaped, Also don't let zombies escape!
-			
-		} else {
-			response.Content = fmt.Sprintf("You moved to a %s located at: %s", sectorName, hexSectors.GetHexName(moveX, moveY))
-			// Print out what happen at location (noise or all clear or setOffNoise)
+		infectionGameChannel := GetChannel(discord, interaction, channel.InfectionGameChannelName)
+		if infectionGameChannel == nil {
+			return
 		}
+		turnMessage, userMessage := game.MovedOnSectorMessages(interaction, sectorName, hexSectors.GetHexName(moveX, moveY))
+		response.Content = userMessage
+		_, err = discord.ChannelMessageSend(infectionGameChannel.ID, turnMessage)
 	}
-	
 
 	discord.InteractionRespond(interaction.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,

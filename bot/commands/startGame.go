@@ -2,10 +2,10 @@ package commands
 
 import (
 	"os"
-	"fmt"
 
 	"infection/bot/game"
 	"infection/bot/role"
+	"infection/bot/channel"
 	"github.com/bwmarrin/discordgo"
 )
 
@@ -16,6 +16,9 @@ var StartGameDetails = &discordgo.ApplicationCommand{
 
 func StartGame(discord *discordgo.Session, interaction *discordgo.InteractionCreate) {
 	if ok := CheckPermissions(discord, interaction, []string{role.Admin}); !ok {
+		return
+	}
+	if ok := CheckChannel(discord, interaction, interaction.Interaction.ChannelID, channel.InfectionGameChannelName); !ok {
 		return
 	}
 
