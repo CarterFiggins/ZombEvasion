@@ -35,6 +35,17 @@ var (
 )
 
 func Move(discord *discordgo.Session, interaction *discordgo.InteractionCreate) {
+	mongoUser, err := models.FindUser(interaction, nil)
+	if err != nil {
+		RespondWithError(discord, interaction, err)
+		return
+	}
+
+	if !mongoUser.TurnActive {
+		RespondWithMessage(discord, interaction, "It is not your turn")
+		return
+	}
+
 	response := &discordgo.InteractionResponseData{
 		Content: "Can't move here try again",
 		Flags: discordgo.MessageFlagsEphemeral,
@@ -53,20 +64,20 @@ func Move(discord *discordgo.Session, interaction *discordgo.InteractionCreate) 
 	if message != nil {
 		response.Content = *message
 	} else {
-		err = models.MoveUser(interaction, moveX, moveY)
+		err = mongoUser.MoveUser(moveX, moveY)
 		if err != nil {
 			RespondWithError(discord, interaction, err)
 			return
 		}
 		sector := hexagonGrid.Board.Grid[moveX][moveY]
 		sectorName := sector.GetSectorName()
-		infectionGameChannel := GetChannel(discord, interaction, channel.InfectionGameChannelName)
-		if infectionGameChannel == nil {
+		alertsChannel := GetChannel(discord, interaction, channel.Alerts)
+		if alertsChannel == nil {
 			return
 		}
 		turnMessage, userMessage := game.MovedOnSectorMessages(interaction, sectorName, hexSectors.GetHexName(moveX, moveY))
 		response.Content = userMessage
-		_, err = discord.ChannelMessageSend(infectionGameChannel.ID, turnMessage)
+		_, err = discord.ChannelMessageSend(alertsChannel.ID, turnMessage)
 	}
 
 	discord.InteractionRespond(interaction.Interaction, &discordgo.InteractionResponse{

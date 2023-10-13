@@ -30,7 +30,7 @@ func MovedOnSectorMessages(interaction *discordgo.InteractionCreate, sectorName,
 		if randNum >= 0 && randNum <= 3 {
 			userMessage =fmt.Sprintf("You moved to a %s located at: %s\n You get to set off an alarm in another sector. Use `/set-off-alarm` to pick location", sectorName, hexName)
 		}
-		// 40% chance ren
+		// 40% chance red
 		if randNum >= 4 && randNum <= 7 {
 			userMessage = fmt.Sprintf("You moved to a %s located at: %s\n The Alarm was set off!", sectorName, hexName)
 			turnMessage = fmt.Sprintf("ALERT! Alarm set off at %s", hexName)
@@ -45,12 +45,12 @@ func MovedOnSectorMessages(interaction *discordgo.InteractionCreate, sectorName,
 }
 
 func CanUserMoveHere(discord *discordgo.Session, interaction *discordgo.InteractionCreate, moveX int, moveY int) (*string, error) {
-	mongoUser, err := models.FindUser(interaction.Interaction.GuildID, interaction.Interaction.Member.User.ID)
+	mongoUser, err := models.FindUser(interaction, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	if (mongoUser.Moved) {
+	if (!mongoUser.CanMove) {
 		message := "You have already moved this turn use `/end-turn` to pass it to the next player"
 		return &message, nil
 	}

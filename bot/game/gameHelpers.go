@@ -13,11 +13,6 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-const (
-	Human string = "Human"
-	Zombie = "Zombie"
-)
-
 func Start(discord *discordgo.Session, interaction *discordgo.InteractionCreate) error {
 	err := hexagonGrid.Board.LoadBoard()
 	if err != nil {
@@ -56,12 +51,13 @@ func Start(discord *discordgo.Session, interaction *discordgo.InteractionCreate)
 			DiscordUserID: user.ID,
 			DiscordGuildID: interaction.Interaction.GuildID,
 			DiscordUsername: user.Username,
-			Moved: false,
+			CanMove: false,
+			CanAttack: false,
 		}
 
 		if i + 1 <= int(numOfHumans) {
 			// is human
-			mongoUser.Role = Human
+			mongoUser.Role = models.Human
 			mongoUser.Location = &hexSectors.Location{
 				Col: hexagonGrid.Board.HumanSector.Col,
 				Row: hexagonGrid.Board.HumanSector.Row,
@@ -69,7 +65,7 @@ func Start(discord *discordgo.Session, interaction *discordgo.InteractionCreate)
 			mongoUser.MaxMoves = 1
 		} else {
 			// is zombie
-			mongoUser.Role = Zombie
+			mongoUser.Role = models.Zombie
 			mongoUser.Location = &hexSectors.Location{
 				Col: hexagonGrid.Board.ZombieSector.Col,
 				Row: hexagonGrid.Board.ZombieSector.Row,
@@ -82,23 +78,29 @@ func Start(discord *discordgo.Session, interaction *discordgo.InteractionCreate)
 	// shuffle mongoUsers for random turn
 	rand.Seed(time.Now().UnixNano())
 	rand.Shuffle(len(mongoUsers), func(i, j int) { mongoUsers[i], mongoUsers[j] = mongoUsers[j], mongoUsers[i] })
-
 	for i, mongoUser := range mongoUsers {
 		if i == 0 {
 			hexagonGrid.Board.CurrentDiscordUserID = mongoUser.DiscordUserID
 			mongoUser.NextDiscordUserID = mongoUsers[i + 1].DiscordUserID
 			mongoUser.PrevDiscordUserID = mongoUsers[len(mongoUsers) - 1].DiscordUserID
+			mongoUser.TurnActive = true
 		} else if i == len(mongoUsers)-1 {
 			mongoUser.NextDiscordUserID = mongoUsers[0].DiscordUserID
 			mongoUser.PrevDiscordUserID = mongoUsers[i - 1].DiscordUserID
+			mongoUser.TurnActive = false
 		} else {
 			mongoUser.NextDiscordUserID = mongoUsers[i + 1].DiscordUserID
 			mongoUser.PrevDiscordUserID = mongoUsers[i - 1].DiscordUserID
+			mongoUser.TurnActive = false
 		}
 	}
 
 	err = models.CreateMongoUsers(mongoUsers)
 	if err != nil {
+		return err
+	}
+
+	if err = mongoUsers[0].StartTurn(); err != nil {
 		return err
 	}
 

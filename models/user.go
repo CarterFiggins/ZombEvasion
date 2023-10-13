@@ -17,8 +17,15 @@ type MongoUser struct {
 	DiscordUsername string
 	NextDiscordUserID string
 	PrevDiscordUserID string
-	Moved bool
+	TurnActive bool
+	CanMove bool
+	CanAttack bool
 }
+
+const (
+	Human string = "Human"
+	Zombie = "Zombie"
+)
 
 func CreateMongoUsers(mongoUsers []*MongoUser) error {
 	userDb := mongo.Db.Collection("users")
@@ -27,7 +34,9 @@ func CreateMongoUsers(mongoUsers []*MongoUser) error {
 			{Key: "role", Value: user.Role},
 			{Key: "col", Value: user.Col},
 			{Key: "row", Value: user.Row},
-			{Key: "moved", Value: user.Moved},
+			{Key: "can_move", Value: user.CanMove},
+			{Key: "can_attack", Value: user.CanAttack},
+			{Key: "turn_active", Value: user.TurnActive},
 			{Key: "max_moves", Value: user.MaxMoves},
 			{Key: "discord_user_id", Value: user.DiscordUserID},
 			{Key: "discord_guild_id", Value: user.DiscordGuildID},
@@ -42,10 +51,15 @@ func CreateMongoUsers(mongoUsers []*MongoUser) error {
 	return nil
 }
 
-func FindUser(guildID, discordUserID string) (*MongoUser, error) {
+func FindUser(interaction *discordgo.InteractionCreate, discordUserID *string) (*MongoUser, error) {
+	if discordUserID == nil {
+		discordUserID = &interaction.Interaction.Member.User.ID
+	}
+
+	guildID := interaction.Interaction.GuildID
 	userDb := mongo.Db.Collection("users")
 	var user bson.M
-	if err := userDb.FindOne(mongo.Ctx, bson.M{"discord_guild_id": guildID, "discord_user_id": discordUserID}).Decode(&user); err != nil {
+	if err := userDb.FindOne(mongo.Ctx, bson.M{"discord_guild_id": guildID, "discord_user_id": *discordUserID}).Decode(&user); err != nil {
 		return nil, err
 	}
 	return bsonUserToMongoUser(user), nil
@@ -61,19 +75,66 @@ func DeleteAllUsers(guildID string) error {
 	return nil
 }
 
-func MoveUser(interaction *discordgo.InteractionCreate, col, row int) error {
+func (u *MongoUser) MoveUser(col, row int) error {
 	userDb := mongo.Db.Collection("users")
 
 	_, err := userDb.UpdateOne(
 		mongo.Ctx,
 		bson.M{
-			"discord_guild_id": interaction.Interaction.GuildID,
-			"discord_user_id": interaction.Interaction.Member.User.ID,
+			"discord_guild_id": u.DiscordGuildID,
+			"discord_user_id": u.DiscordUserID,
 		},
 		bson.D{
 			{"$set", bson.D{{"col", col}}},
 			{"$set", bson.D{{"row", row}}},
-			{"$set", bson.D{{"moved", true}}},
+			{"$set", bson.D{{"can_move", false}}},
+		},
+	)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (u *MongoUser) EndTurn() error {
+	userDb := mongo.Db.Collection("users")
+
+	_, err := userDb.UpdateOne(
+		mongo.Ctx,
+		bson.M{
+			"discord_guild_id": u.DiscordGuildID,
+			"discord_user_id": u.DiscordUserID,
+		},
+		bson.D{
+			{"$set", bson.D{{"turn_active", false}}},
+		},
+	)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (u *MongoUser) StartTurn() error {
+	userDb := mongo.Db.Collection("users")
+
+	set := bson.D{
+		{"turn_active", true},
+		{"can_move", true},
+	}
+
+	if (u.Role == Zombie) {
+		set = append(set, bson.E{"can_attack", true})
+	}
+
+	_, err := userDb.UpdateOne(
+		mongo.Ctx,
+		bson.M{
+			"discord_guild_id": u.DiscordGuildID,
+			"discord_user_id": u.DiscordUserID,
+		},
+		bson.D{
+			{"$set", set},
 		},
 	)
 	if err != nil {
@@ -89,7 +150,9 @@ func bsonUserToMongoUser(user bson.M) *MongoUser {
 			Col: int(user["col"].(int32)),
 			Row: int(user["row"].(int32)),
 		},
-		Moved: user["moved"].(bool),
+		CanMove: user["can_move"].(bool),
+		CanAttack: user["can_attack"].(bool),
+		TurnActive: user["turn_active"].(bool),
 		MaxMoves: int(user["max_moves"].(int32)),
 		DiscordUserID: user["discord_user_id"].(string),
 		DiscordGuildID: user["discord_guild_id"].(string),
