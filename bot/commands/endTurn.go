@@ -1,8 +1,6 @@
 package commands
 
 import (
-	"fmt"
-
 	"infection/models"
 	"infection/bot/channel"
 	"github.com/bwmarrin/discordgo"
@@ -51,7 +49,7 @@ func EndTurn(discord *discordgo.Session, interaction *discordgo.InteractionCreat
 		return
 	}
 
-	nextUserMessage := fmt.Sprintf("It is your turn in the Infection game")
+	nextUserMessage := "It is your turn in the Infection game"
 	if err = channel.SendUserMessage(discord, interaction, nextMongoUser.DiscordUserID, nextUserMessage); err != nil {
 		RespondWithError(discord, interaction, err)
 		return

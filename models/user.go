@@ -53,6 +53,26 @@ func CreateMongoUsers(mongoUsers []*MongoUser) error {
 	return nil
 }
 
+func bsonUserToMongoUser(user bson.M) *MongoUser {
+	return &MongoUser{
+		Role: user["role"].(string),
+		Location: &hexSectors.Location{
+			Col: int(user["col"].(int32)),
+			Row: int(user["row"].(int32)),
+		},
+		CanMove: user["can_move"].(bool),
+		CanAttack: user["can_attack"].(bool),
+		CanSetOffAlarm: user["can_set_off_alarm"].(bool),
+		TurnActive: user["turn_active"].(bool),
+		MaxMoves: int(user["max_moves"].(int32)),
+		DiscordUserID: user["discord_user_id"].(string),
+		DiscordGuildID: user["discord_guild_id"].(string),
+		DiscordUsername: user["discord_username"].(string),
+		NextDiscordUserID: user["next_discord_user_id"].(string),
+		PrevDiscordUserID: user["prev_discord_user_id"].(string),
+	}
+}
+
 func FindUser(interaction *discordgo.InteractionCreate, discordUserID *string) (*MongoUser, error) {
 	if discordUserID == nil {
 		discordUserID = &interaction.Interaction.Member.User.ID
@@ -67,10 +87,69 @@ func FindUser(interaction *discordgo.InteractionCreate, discordUserID *string) (
 	return bsonUserToMongoUser(user), nil
 }
 
+func FindUserAtLocation(interaction *discordgo.InteractionCreate, col, row int) ([]*MongoUser, error) {
+	userDb := mongo.Db.Collection("users")
+	guildID := interaction.Interaction.GuildID
+
+	filterCursor, err := userDb.Find(mongo.Ctx, bson.M{"discord_guild_id": guildID, "col": col, "row": row})
+	if err != nil {
+		return nil, err
+	}
+	var mongoUsersFiltered []bson.M
+	if err = filterCursor.All(mongo.Ctx, &mongoUsersFiltered); err != nil {
+		return nil, err
+	}
+	var mongoUsers []*MongoUser
+	for _, bsonUser := range mongoUsersFiltered {
+		mongoUsers = append(mongoUsers, bsonUserToMongoUser(bsonUser))
+	}
+
+	return mongoUsers, nil
+}
+
 func DeleteAllUsers(guildID string) error {
 	userDb := mongo.Db.Collection("users")
 
 	_, err := userDb.DeleteMany(mongo.Ctx, bson.M{"discord_guild_id": guildID})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (u *MongoUser) UpgradeUsersMaxMoves(maxMoves int) error {
+	userDb := mongo.Db.Collection("users")
+
+	_, err := userDb.UpdateOne(
+		mongo.Ctx,
+		bson.M{
+			"discord_guild_id": u.DiscordGuildID,
+			"discord_user_id": u.DiscordUserID,
+		},
+		bson.D{
+			{"$set", bson.D{{"max_moves", maxMoves}}},
+		},
+	)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (u *MongoUser) RespawnUser(col, row int) error {
+	userDb := mongo.Db.Collection("users")
+
+	_, err := userDb.UpdateOne(
+		mongo.Ctx,
+		bson.M{
+			"discord_guild_id": u.DiscordGuildID,
+			"discord_user_id": u.DiscordUserID,
+		},
+		bson.D{
+			{"$set", bson.D{{"col", col}}},
+			{"$set", bson.D{{"row", row}}},
+		},
+	)
 	if err != nil {
 		return err
 	}
@@ -162,24 +241,4 @@ func (u *MongoUser) StartTurn() error {
 		return err
 	}
 	return nil
-}
-
-func bsonUserToMongoUser(user bson.M) *MongoUser {
-	return &MongoUser{
-		Role: user["role"].(string),
-		Location: &hexSectors.Location{
-			Col: int(user["col"].(int32)),
-			Row: int(user["row"].(int32)),
-		},
-		CanMove: user["can_move"].(bool),
-		CanAttack: user["can_attack"].(bool),
-		CanSetOffAlarm: user["can_set_off_alarm"].(bool),
-		TurnActive: user["turn_active"].(bool),
-		MaxMoves: int(user["max_moves"].(int32)),
-		DiscordUserID: user["discord_user_id"].(string),
-		DiscordGuildID: user["discord_guild_id"].(string),
-		DiscordUsername: user["discord_username"].(string),
-		NextDiscordUserID: user["next_discord_user_id"].(string),
-		PrevDiscordUserID: user["prev_discord_user_id"].(string),
-	}
 }
