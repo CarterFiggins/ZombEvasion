@@ -20,13 +20,13 @@ var (
 			{
 				Type: discordgo.ApplicationCommandOptionString,
 				Name: "letter-column",
-				Description: "The column of the hex gird",
+				Description: "The column of the sector",
 				Required: true,
 			},
 			{
 				Type: discordgo.ApplicationCommandOptionInteger,
 				Name: "row-number",
-				Description: "The row of the hex gird",
+				Description: "The row of the sector",
 				MinValue: &minValue,
 				Required: true,
 			},
@@ -56,7 +56,7 @@ func Move(discord *discordgo.Session, interaction *discordgo.InteractionCreate) 
 	moveY := int(options[1].Value.(float64)) - 1
 	moveX := hexSectors.LetterToNumMap[letter]
 
-	message, err := game.CanUserMoveHere(discord, interaction, moveX, moveY);
+	message, err := game.CanUserMoveHere(discord, interaction, moveX, moveY, mongoUser);
 	if err != nil {
 		RespondWithError(discord, interaction, err)
 		return
@@ -75,12 +75,19 @@ func Move(discord *discordgo.Session, interaction *discordgo.InteractionCreate) 
 		if alertsChannel == nil {
 			return
 		}
-		turnMessage, userMessage := game.MovedOnSectorMessages(interaction, sectorName, hexSectors.GetHexName(moveX, moveY))
-		response.Content = userMessage
-		_, err = discord.ChannelMessageSend(alertsChannel.ID, turnMessage)
+		turnMessage, userMessage, err := game.MovedOnSectorMessages(interaction, sectorName, hexSectors.GetHexName(moveX, moveY))
 		if err != nil {
 			RespondWithError(discord, interaction, err)
 			return
+		}
+
+		response.Content = userMessage
+		if (turnMessage != "") {
+			_, err = discord.ChannelMessageSend(alertsChannel.ID, turnMessage)
+			if err != nil {
+				RespondWithError(discord, interaction, err)
+				return
+			}
 		}
 	}
 

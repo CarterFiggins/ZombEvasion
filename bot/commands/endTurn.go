@@ -26,7 +26,12 @@ func EndTurn(discord *discordgo.Session, interaction *discordgo.InteractionCreat
 	}
 
 	if mongoUser.CanMove {
-		RespondWithMessage(discord, interaction, "You have to move before you end your turn")
+		RespondWithMessage(discord, interaction, "You have to `/move` before you end your turn")
+		return
+	}
+
+	if mongoUser.CanSetOffAlarm {
+		RespondWithMessage(discord, interaction, "You have to `/set-off-alarm` before you end your turn")
 		return
 	}
 

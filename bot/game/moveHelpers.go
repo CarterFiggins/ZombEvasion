@@ -11,13 +11,11 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-func MovedOnSectorMessages(interaction *discordgo.InteractionCreate, sectorName, hexName string) (string, string) {
-	// TODO: DON'T LET ZOMBIES ESCAPE!!!
+func MovedOnSectorMessages(interaction *discordgo.InteractionCreate, sectorName, hexName string) (string, string, error) {
 	if (sectorName == hexSectors.SafeHouseName) {
 		userMessage := "You made it to the Save House!"
 		turnMessage := fmt.Sprintf("%v has made it to the save house!", interaction.Interaction.Member.User.Mention())
-		// TODO: update user to safe house and move them out of the game
-		return turnMessage, userMessage
+		return turnMessage, userMessage, nil
 	}
 
 	turnMessage := "Silence No alarm"
@@ -29,6 +27,15 @@ func MovedOnSectorMessages(interaction *discordgo.InteractionCreate, sectorName,
 		// 40% chance green
 		if randNum >= 0 && randNum <= 3 {
 			userMessage =fmt.Sprintf("You moved to a %s located at: %s\n You get to set off an alarm in another sector. Use `/set-off-alarm` to pick location", sectorName, hexName)
+			turnMessage = ""
+			mongoUser, err := models.FindUser(interaction, nil)
+			if err != nil {
+				return "", "", err
+			}
+			err = mongoUser.UpdateCanSetOffAlarm(true)
+			if err != nil {
+				return "", "", err
+			}
 		}
 		// 40% chance red
 		if randNum >= 4 && randNum <= 7 {
@@ -41,15 +48,10 @@ func MovedOnSectorMessages(interaction *discordgo.InteractionCreate, sectorName,
 		}
 	}
 
-	return turnMessage, userMessage
+	return turnMessage, userMessage, nil
 }
 
-func CanUserMoveHere(discord *discordgo.Session, interaction *discordgo.InteractionCreate, moveX int, moveY int) (*string, error) {
-	mongoUser, err := models.FindUser(interaction, nil)
-	if err != nil {
-		return nil, err
-	}
-
+func CanUserMoveHere(discord *discordgo.Session, interaction *discordgo.InteractionCreate, moveX int, moveY int, mongoUser *models.MongoUser) (*string, error) {
 	if (!mongoUser.CanMove) {
 		message := "You have already moved this turn. Use `/end-turn` to start the next players turn"
 		return &message, nil
@@ -79,61 +81,64 @@ func GetMoveSectors(mongoUser *models.MongoUser) []string {
 		mongoUser.Location.GetHexName(),
 	}
 
-	travelSectors(mongoUser.Location, &sectorSlice, 0, mongoUser.MaxMoves)
+	travelSectors(mongoUser, &sectorSlice, 0, mongoUser.MaxMoves)
 
 	return sectorSlice[1:]
 }
 
-func travelSectors(location *hexSectors.Location, sectorSlice *[]string, depth, limit int) {
+func travelSectors(mongoUser *models.MongoUser, sectorSlice *[]string, depth, limit int) {
 	if depth == limit {
 		return
 	}
-	
+
+	location := mongoUser.Location
 	up := location.Col % 2 == 0
 	
 	if up {
 		for i := location.Col - 1; i < location.Col + 2; i++ {
 			for j := location.Row - 1; j < location.Row + 1; j++ {
-				if canMoveHere(i, j) {
+				if canMoveHere(i, j, mongoUser.Role) {
 					location := &hexSectors.Location{Col: i, Row: j}
 					addSector(location, sectorSlice)
-					travelSectors(location, sectorSlice, depth + 1, limit)
+					travelSectors(mongoUser, sectorSlice, depth + 1, limit)
 				}
 			}
 		}
-		if canMoveHere(location.Col, location.Row + 1) {
+		if canMoveHere(location.Col, location.Row + 1, mongoUser.Role) {
 			location := &hexSectors.Location{Col: location.Col, Row: location.Row - 1}
 			addSector(location, sectorSlice)
-			travelSectors(location, sectorSlice, depth + 1, limit)
+			travelSectors(mongoUser, sectorSlice, depth + 1, limit)
 			
 		}
 	} else {
 		for i := location.Col - 1; i < location.Col + 2; i++ {
 			for j := location.Row; j < location.Row + 2; j++ {
-				if canMoveHere(i, j) {
+				if canMoveHere(i, j, mongoUser.Role) {
 					location := &hexSectors.Location{Col: i, Row: j}
 					addSector(location, sectorSlice)
-					travelSectors(location, sectorSlice, depth + 1, limit)
+					travelSectors(mongoUser, sectorSlice, depth + 1, limit)
 					
 				}
 			}
 		}
-		if canMoveHere(location.Col, location.Row - 1) {
+		if canMoveHere(location.Col, location.Row - 1, mongoUser.Role) {
 			location := &hexSectors.Location{Col: location.Col, Row: location.Row - 1}
 			addSector(location, sectorSlice)
-			travelSectors(location, sectorSlice, depth + 1, limit)
+			travelSectors(mongoUser, sectorSlice, depth + 1, limit)
 		}
 	}
 	return
 }
 
-func canMoveHere(col, row int) bool {
+func canMoveHere(col, row int, userRole string) bool {
 	grid := hexagonGrid.Board.Grid
 	if col >= len(grid) || col < 0 {
 		return false
 	} else if row >= len(grid[col]) || row < 0 {
 		return false
 	} else if !grid[col][row].CanMoveHere() {
+		return false
+	} else if userRole == models.Zombie && grid[col][row].GetSectorName() == hexSectors.SafeHouseName {
 		return false
 	}
 

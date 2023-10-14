@@ -20,6 +20,7 @@ type MongoUser struct {
 	TurnActive bool
 	CanMove bool
 	CanAttack bool
+	CanSetOffAlarm bool
 }
 
 const (
@@ -36,6 +37,7 @@ func CreateMongoUsers(mongoUsers []*MongoUser) error {
 			{Key: "row", Value: user.Row},
 			{Key: "can_move", Value: user.CanMove},
 			{Key: "can_attack", Value: user.CanAttack},
+			{Key: "can_set_off_alarm", Value: user.CanSetOffAlarm},
 			{Key: "turn_active", Value: user.TurnActive},
 			{Key: "max_moves", Value: user.MaxMoves},
 			{Key: "discord_user_id", Value: user.DiscordUserID},
@@ -88,6 +90,25 @@ func (u *MongoUser) MoveUser(col, row int) error {
 			{"$set", bson.D{{"col", col}}},
 			{"$set", bson.D{{"row", row}}},
 			{"$set", bson.D{{"can_move", false}}},
+		},
+	)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (u *MongoUser) UpdateCanSetOffAlarm(canSetOffAlarm bool) error {
+	userDb := mongo.Db.Collection("users")
+	
+	_, err := userDb.UpdateOne(
+		mongo.Ctx,
+		bson.M{
+			"discord_guild_id": u.DiscordGuildID,
+			"discord_user_id": u.DiscordUserID,
+		},
+		bson.D{
+			{"$set", bson.D{{"can_set_off_alarm", canSetOffAlarm}}},
 		},
 	)
 	if err != nil {
@@ -152,6 +173,7 @@ func bsonUserToMongoUser(user bson.M) *MongoUser {
 		},
 		CanMove: user["can_move"].(bool),
 		CanAttack: user["can_attack"].(bool),
+		CanSetOffAlarm: user["can_set_off_alarm"].(bool),
 		TurnActive: user["turn_active"].(bool),
 		MaxMoves: int(user["max_moves"].(int32)),
 		DiscordUserID: user["discord_user_id"].(string),

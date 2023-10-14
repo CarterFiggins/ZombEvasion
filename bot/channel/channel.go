@@ -22,7 +22,7 @@ func SetUpChannels(discord *discordgo.Session, interaction *discordgo.Interactio
 		ID: roleMap["@everyone"].ID,
 		Type: discordgo.PermissionOverwriteTypeRole,
 		Deny: discordgo.PermissionAllText,
-		Allow: discordgo.PermissionViewChannel,
+		Allow: discordgo.PermissionViewChannel | discordgo.PermissionReadMessageHistory,
 	}
 
 	adminPermission := &discordgo.PermissionOverwrite {
@@ -34,6 +34,13 @@ func SetUpChannels(discord *discordgo.Session, interaction *discordgo.Interactio
 
 	inGamePermission := &discordgo.PermissionOverwrite {
 		ID: roleMap[role.InGame].ID,
+		Type: discordgo.PermissionOverwriteTypeRole,
+		Deny: 0,
+		Allow: discordgo.PermissionAllText,
+	}
+
+	botPermissions := &discordgo.PermissionOverwrite {
+		ID: roleMap[role.Bot].ID,
 		Type: discordgo.PermissionOverwriteTypeRole,
 		Deny: 0,
 		Allow: discordgo.PermissionAllText,
@@ -66,6 +73,7 @@ func SetUpChannels(discord *discordgo.Session, interaction *discordgo.Interactio
 				Type: discordgo.ChannelTypeGuildText,
 				PermissionOverwrites: []*discordgo.PermissionOverwrite{
 					everyonePermission,
+					botPermissions,
 					adminPermission,
 				},
 			},

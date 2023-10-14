@@ -11,6 +11,7 @@ const (
 	WaitingForNextGame string = "WaitingForNextGame"
 	Admin = "Admin"
 	InGame = "InGame"
+	Bot = "Infection"
 )
 
 func isAdmin(discord *discordgo.Session, interaction *discordgo.InteractionCreate) (bool, error) {
