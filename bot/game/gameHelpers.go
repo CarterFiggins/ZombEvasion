@@ -125,6 +125,11 @@ func End(discord *discordgo.Session, interaction *discordgo.InteractionCreate) e
 		return err
 	}
 
+	err = role.AddRoleToUsers(discord, interaction, role.WaitingForNextGame, users)
+	if err != nil {
+		return err
+	}
+
 	err = models.DeactivateGame(guildID)
 	if err != nil {
 		return err

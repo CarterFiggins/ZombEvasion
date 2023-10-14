@@ -1,16 +1,19 @@
 package commands
 
 import (
+	"fmt"
+
 	"infection/models"
+	"infection/bot/channel"
 	"github.com/bwmarrin/discordgo"
 )
 
-var PassTurnDetails = &discordgo.ApplicationCommand{
-	Name: "pass-turn",
+var EndTurnDetails = &discordgo.ApplicationCommand{
+	Name: "end-turn",
 	Description: "Starts the next players turn",
 }
 
-func PassTurn(discord *discordgo.Session, interaction *discordgo.InteractionCreate) {
+func EndTurn(discord *discordgo.Session, interaction *discordgo.InteractionCreate) {
 	mongoUser, err := models.FindUser(interaction, nil)
 	if err != nil {
 		RespondWithError(discord, interaction, err)
@@ -23,7 +26,7 @@ func PassTurn(discord *discordgo.Session, interaction *discordgo.InteractionCrea
 	}
 
 	if mongoUser.CanMove {
-		RespondWithMessage(discord, interaction, "You have to move before you pass your turn")
+		RespondWithMessage(discord, interaction, "You have to move before you end your turn")
 		return
 	}
 
@@ -43,7 +46,11 @@ func PassTurn(discord *discordgo.Session, interaction *discordgo.InteractionCrea
 		return
 	}
 
-	// send nextMongoUser a message saying it is there turn
+	nextUserMessage := fmt.Sprintf("It is your turn in the Infection game\n-------------------------------------")
+	if err = channel.SendUserMessage(discord, interaction, nextMongoUser.DiscordUserID, nextUserMessage); err != nil {
+		RespondWithError(discord, interaction, err)
+		return
+	}
 
 	response := &discordgo.InteractionResponseData{
 		Content: "Your turn has ended",

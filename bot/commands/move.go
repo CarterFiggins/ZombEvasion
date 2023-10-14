@@ -78,6 +78,10 @@ func Move(discord *discordgo.Session, interaction *discordgo.InteractionCreate) 
 		turnMessage, userMessage := game.MovedOnSectorMessages(interaction, sectorName, hexSectors.GetHexName(moveX, moveY))
 		response.Content = userMessage
 		_, err = discord.ChannelMessageSend(alertsChannel.ID, turnMessage)
+		if err != nil {
+			RespondWithError(discord, interaction, err)
+			return
+		}
 	}
 
 	discord.InteractionRespond(interaction.Interaction, &discordgo.InteractionResponse{

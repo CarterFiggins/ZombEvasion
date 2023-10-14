@@ -77,14 +77,14 @@ func SetUpRoles(discord *discordgo.Session, interaction *discordgo.InteractionCr
 			return err
 		}
 	}
-	if _, ok := roleMap[Admin]; !ok {
-		err = makeRole(discord, guildID, Admin, 34223)
+	if _, ok := roleMap[InGame]; !ok {
+		err = makeRole(discord, guildID, InGame, 44853)
 		if err != nil {
 			return err
 		}
 	}
-	if _, ok := roleMap[InGame]; !ok {
-		err = makeRole(discord, guildID, InGame, 44853)
+	if _, ok := roleMap[Admin]; !ok {
+		err = makeRole(discord, guildID, Admin, 34223)
 		if err != nil {
 			return err
 		}

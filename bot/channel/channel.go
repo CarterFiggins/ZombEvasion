@@ -91,3 +91,17 @@ func CreateChannelMap(discord *discordgo.Session, interaction *discordgo.Interac
 
 	return channelMap, nil
 }
+
+func SendUserMessage(discord *discordgo.Session, interaction *discordgo.InteractionCreate, discordUserID, message string) error {
+	userChannel, err := discord.UserChannelCreate(discordUserID)
+	if err != nil {
+		return err
+	}
+
+	_, err = discord.ChannelMessageSend(userChannel.ID, message)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

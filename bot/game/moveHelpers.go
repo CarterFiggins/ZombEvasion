@@ -51,7 +51,7 @@ func CanUserMoveHere(discord *discordgo.Session, interaction *discordgo.Interact
 	}
 
 	if (!mongoUser.CanMove) {
-		message := "You have already moved this turn use `/end-turn` to pass it to the next player"
+		message := "You have already moved this turn. Use `/end-turn` to start the next players turn"
 		return &message, nil
 	}
 
