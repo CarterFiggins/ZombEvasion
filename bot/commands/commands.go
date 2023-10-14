@@ -18,6 +18,7 @@ var (
 		MoveDetails,
 		EndTurnDetails,
 		SetOffAlarmDetails,
+		StatusDetails,
 	}
 
 	CommandHandlers = map[string]func(discordS *discordgo.Session, interaction *discordgo.InteractionCreate){
@@ -29,6 +30,7 @@ var (
 		MoveDetails.Name: Move,
 		EndTurnDetails.Name: EndTurn,
 		SetOffAlarmDetails.Name: SetOffAlarm,
+		StatusDetails.Name: Status,
 	}
 )
 

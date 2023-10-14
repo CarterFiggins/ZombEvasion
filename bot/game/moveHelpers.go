@@ -81,50 +81,49 @@ func GetMoveSectors(mongoUser *models.MongoUser) []string {
 		mongoUser.Location.GetHexName(),
 	}
 
-	travelSectors(mongoUser, &sectorSlice, 0, mongoUser.MaxMoves)
+	travelSectors(mongoUser.Location, mongoUser.Role, &sectorSlice, 0, mongoUser.MaxMoves)
 
 	return sectorSlice[1:]
 }
 
-func travelSectors(mongoUser *models.MongoUser, sectorSlice *[]string, depth, limit int) {
+func travelSectors(location *hexSectors.Location, userRole string, sectorSlice *[]string, depth, limit int) {
 	if depth == limit {
 		return
 	}
 
-	location := mongoUser.Location
 	up := location.Col % 2 == 0
 	
 	if up {
 		for i := location.Col - 1; i < location.Col + 2; i++ {
 			for j := location.Row - 1; j < location.Row + 1; j++ {
-				if canMoveHere(i, j, mongoUser.Role) {
-					location := &hexSectors.Location{Col: i, Row: j}
-					addSector(location, sectorSlice)
-					travelSectors(mongoUser, sectorSlice, depth + 1, limit)
+				if canMoveHere(i, j, userRole) {
+					newLocation := &hexSectors.Location{Col: i, Row: j}
+					addSector(newLocation, sectorSlice)
+					travelSectors(newLocation, userRole, sectorSlice, depth + 1, limit)
 				}
 			}
 		}
-		if canMoveHere(location.Col, location.Row + 1, mongoUser.Role) {
-			location := &hexSectors.Location{Col: location.Col, Row: location.Row - 1}
-			addSector(location, sectorSlice)
-			travelSectors(mongoUser, sectorSlice, depth + 1, limit)
+		if canMoveHere(location.Col, location.Row + 1, userRole) {
+			newLocation := &hexSectors.Location{Col: location.Col, Row: location.Row + 1}
+			addSector(newLocation, sectorSlice)
+			travelSectors(newLocation, userRole, sectorSlice, depth + 1, limit)
 			
 		}
 	} else {
 		for i := location.Col - 1; i < location.Col + 2; i++ {
 			for j := location.Row; j < location.Row + 2; j++ {
-				if canMoveHere(i, j, mongoUser.Role) {
-					location := &hexSectors.Location{Col: i, Row: j}
-					addSector(location, sectorSlice)
-					travelSectors(mongoUser, sectorSlice, depth + 1, limit)
+				if canMoveHere(i, j, userRole) {
+					newLocation := &hexSectors.Location{Col: i, Row: j}
+					addSector(newLocation, sectorSlice)
+					travelSectors(newLocation, userRole, sectorSlice, depth + 1, limit)
 					
 				}
 			}
 		}
-		if canMoveHere(location.Col, location.Row - 1, mongoUser.Role) {
-			location := &hexSectors.Location{Col: location.Col, Row: location.Row - 1}
-			addSector(location, sectorSlice)
-			travelSectors(mongoUser, sectorSlice, depth + 1, limit)
+		if canMoveHere(location.Col, location.Row - 1, userRole) {
+			newLocation := &hexSectors.Location{Col: location.Col, Row: location.Row - 1}
+			addSector(newLocation, sectorSlice)
+			travelSectors(newLocation, userRole, sectorSlice, depth + 1, limit)
 		}
 	}
 	return
