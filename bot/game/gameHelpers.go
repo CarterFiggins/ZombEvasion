@@ -111,6 +111,11 @@ func Start(discord *discordgo.Session, interaction *discordgo.InteractionCreate)
 		return err
 	}
 
+	startUserMessage := "It is your turn in the Infection game"
+	if err = channel.SendUserMessage(discord, interaction,  mongoUsers[0].DiscordUserID, startUserMessage); err != nil {
+		return err
+	}
+
 	return nil
 }
 
