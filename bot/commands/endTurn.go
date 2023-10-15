@@ -60,6 +60,11 @@ func EndTurn(discord *discordgo.Session, interaction *discordgo.InteractionCreat
 		Flags: discordgo.MessageFlagsEphemeral,
 	}
 
+	if err = channel.ShowMap(discord, interaction); err != nil {
+		RespondWithError(discord, interaction, err)
+		return
+	}
+
 	discord.InteractionRespond(interaction.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: response,

@@ -11,10 +11,23 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-func MovedOnSectorMessages(interaction *discordgo.InteractionCreate, sectorName, hexName string) (string, string, error) {
+func MovedOnSectorMessages(discord *discordgo.Session, interaction *discordgo.InteractionCreate, sectorName, hexName string) (string, string, error) {
 	if (sectorName == hexSectors.SafeHouseName) {
 		userMessage := "You made it to the Save House!"
 		turnMessage := fmt.Sprintf("%v has made it to the save house!", interaction.Interaction.Member.User.Mention())
+		mongoUser, err := models.FindUser(interaction, nil)
+		if err != nil {
+			return "", "", err
+		}
+
+		if err = mongoUser.EnterSafeHouse(); err != nil {
+			return "", "", err
+		}
+
+		if err = CheckGame(discord, interaction); err != nil {
+			return "", "", err
+		}
+
 		return turnMessage, userMessage, nil
 	}
 

@@ -1,6 +1,10 @@
 package channel
 
 import (
+	"fmt"
+	"errors"
+	"os"
+
 	"infection/bot/role"
 	"github.com/bwmarrin/discordgo"
 )
@@ -57,6 +61,7 @@ func SetUpChannels(discord *discordgo.Session, interaction *discordgo.Interactio
 					inGamePermission,
 					adminPermission,
 					everyonePermission,
+					botPermissions,
 				},
 			},
 		)
@@ -112,4 +117,48 @@ func SendUserMessage(discord *discordgo.Session, interaction *discordgo.Interact
 	}
 
 	return nil
+}
+
+func ShowMap(discord *discordgo.Session, interaction *discordgo.InteractionCreate) error {
+	channelMap, err := CreateChannelMap(discord, interaction)
+	if err != nil {
+		return err
+	}
+	channel, ok := channelMap[InfectionGameChannelName]
+	if !ok {
+		return errors.New(fmt.Sprintf("%s not found. Try running `/setup-server`", InfectionGameChannelName))
+	}
+
+	file, err := os.Open("./gameBoard.png")
+	if err != nil {
+		return	err
+	} 
+
+	_, err = discord.ChannelMessageSendComplex(channel.ID, &discordgo.MessageSend{
+		Files: []*discordgo.File{
+			{
+				ContentType: "image/png",
+				Name: "gameBoard.png",
+				Reader: file,
+			},
+		},
+	})
+	if err != nil {
+		return	err
+	} 
+
+	return nil
+}
+
+func GetChannel(discord *discordgo.Session, interaction *discordgo.InteractionCreate, channelName string) (*discordgo.Channel, error) {
+	channelMap, err := CreateChannelMap(discord, interaction)
+	if err != nil {
+		return nil, err
+	}
+	channel, ok := channelMap[channelName]
+	if !ok {
+		return nil, errors.New(fmt.Sprintf("ERROR: %s not found. Try running `/setup-server`", channelName))
+	}
+
+	return channel, nil
 }

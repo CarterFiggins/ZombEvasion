@@ -75,12 +75,16 @@ func Attack(discord *discordgo.Session, interaction *discordgo.InteractionCreate
 			return
 		}
 
-		usersAttacked, err := models.FindUserAtLocation(interaction, attackX, attackY)
+		usersAttacked, err := models.FindUsersAtLocation(interaction, attackX, attackY)
 
 		var usersAttackedRoles []string
 		zombieUpgrade := false
 		
 		for _, user := range usersAttacked {
+			if (user.DiscordUserID == mongoUser.DiscordUserID) {
+				// Don't attack self
+				continue
+			}
 			usersAttackedRoles = append(usersAttackedRoles, user.Role)
 			zombieSectorCol := hexagonGrid.Board.ZombieSector.Col
 			zombieSectorRow := hexagonGrid.Board.ZombieSector.Row
@@ -95,8 +99,17 @@ func Attack(discord *discordgo.Session, interaction *discordgo.InteractionCreate
 					RespondWithError(discord, interaction, err)
 					return
 				}
+				
+				if err = user.TurnIntoZombie(); err != nil {
+					RespondWithError(discord, interaction, err)
+					return
+				}
 
-				// TODO: check end game
+				if err = game.CheckGame(discord, interaction); err != nil {
+					RespondWithError(discord, interaction, err)
+					return
+				} 
+				
 			} else if (user.Role == models.Zombie) {
 				attackedMessage := fmt.Sprintf("A zombie mistaken you as a human and attacked you! You have Respawned at %s", hexSectors.GetHexName(zombieSectorCol, zombieSectorRow))
 				if err = channel.SendUserMessage(discord, interaction, user.DiscordUserID, attackedMessage); err != nil {

@@ -5,8 +5,10 @@ import (
 	"time"
 	"math/rand"
 	"errors"
+	"fmt"
 
 	"infection/bot/role"
+	"infection/bot/channel"
 	"infection/models"
 	"infection/hexagonGrid"
 	"infection/hexagonGrid/hexSectors"
@@ -52,7 +54,7 @@ func Start(discord *discordgo.Session, interaction *discordgo.InteractionCreate)
 			DiscordGuildID: interaction.Interaction.GuildID,
 			DiscordUsername: user.Username,
 			CanMove: false,
-			CanAttack: false,
+			InGame: true,
 		}
 
 		if i + 1 <= int(numOfHumans) {
@@ -125,11 +127,6 @@ func End(discord *discordgo.Session, interaction *discordgo.InteractionCreate) e
 		return err
 	}
 
-	err = role.AddRoleToUsers(discord, interaction, role.WaitingForNextGame, users)
-	if err != nil {
-		return err
-	}
-
 	err = models.DeactivateGame(guildID)
 	if err != nil {
 		return err
@@ -141,6 +138,44 @@ func End(discord *discordgo.Session, interaction *discordgo.InteractionCreate) e
 	}
 
 	hexagonGrid.Board.UnloadGame()
+
+	return nil
+}
+
+func CheckGame(discord *discordgo.Session, interaction *discordgo.InteractionCreate) error {
+	mongoUsers, err := models.GetAllUsersPlaying(interaction)
+	if err != nil {
+		return err
+	}
+
+	gameOver := true
+
+	for _, mongoUser := range mongoUsers {
+		if (mongoUser.Role == models.Human){
+			gameOver = false
+		}
+	}
+
+	if (gameOver) {
+		// send game over message and who survived
+		alertsChannel, err := channel.GetChannel(discord, interaction, channel.Alerts)
+		if err != nil {
+			return errors.New("no channel")
+		}
+
+		survivers, err := models.GetSurvivers(interaction)
+
+		_, err = discord.ChannelMessageSend(alertsChannel.ID, fmt.Sprintf("Game Over! Survivers: %v", survivers))
+		if err != nil {
+			return err
+		}
+
+		if err != nil {
+			return err
+		}
+
+		End(discord, interaction)
+	}
 
 	return nil
 }
