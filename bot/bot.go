@@ -27,6 +27,17 @@ func Run() {
 
 	// Add event handler for commands
 	discord.AddHandler(func(discord *discordgo.Session, interaction *discordgo.InteractionCreate) {
+		if interaction.Interaction.Member == nil {
+			discord.InteractionRespond(interaction.Interaction, &discordgo.InteractionResponse{
+				Type: discordgo.InteractionResponseChannelMessageWithSource,
+				Data: &discordgo.InteractionResponseData{
+					Content: "DM commands are turned off",
+					Flags: discordgo.MessageFlagsEphemeral,
+				},
+			})
+			return
+		}
+
 		if handler, ok := commands.CommandHandlers[interaction.ApplicationCommandData().Name]; ok {
 			handler(discord, interaction)
 		}
