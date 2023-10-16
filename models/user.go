@@ -80,7 +80,7 @@ func FindUser(interaction *discordgo.InteractionCreate, discordUserID *string) (
 	if discordUserID == nil {
 		discordUserID = &interaction.Interaction.Member.User.ID
 	}
-	if discordUserId == nil {
+	if discordUserID == nil {
 		discordUserID = &interaction.Interaction.User.ID
 	}
 
