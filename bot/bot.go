@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/signal"
 	"strings"
+	"math/rand"
 	
 	"infection/bot/commands"
 	"github.com/bwmarrin/discordgo"
@@ -64,6 +65,43 @@ func newMessage(discord *discordgo.Session, message *discordgo.MessageCreate) {
 	// Respond to messages
 	switch {
 	case strings.Contains(message.Content, "bot"):
-		discord.ChannelMessageSend(message.ChannelID, "Hello Human!")
+		discord.ChannelMessageSend(message.ChannelID, randomBotGif())
 	}
+}
+
+func randomBotGif() string {
+	gifs := []string{
+		"https://tenor.com/Kaca.gif",
+		"https://tenor.com/bSvv8.gif",
+		"https://tenor.com/bVEQE.gif",
+		"https://tenor.com/bFQTS.gif",
+		"https://tenor.com/bfxl4.gif",
+		"https://tenor.com/bkrQOwoAa7h.gif",
+		"https://tenor.com/t60i.gif",
+		"https://tenor.com/bE1Qx.gif",
+		"https://tenor.com/xK1M.gif",
+		"https://tenor.com/bkV6J.gif",
+		"https://tenor.com/bdbfH.gif",
+		"https://tenor.com/bHUoo.gif",
+		"https://tenor.com/bUHlU.gif",
+		"https://tenor.com/bM5nL.gif",
+		"https://tenor.com/bRkE8.gif",
+		"https://tenor.com/bwK3O.gif",
+		"https://tenor.com/bcOeZ.gif",
+		"https://tenor.com/bnYU9.gif",
+		"https://tenor.com/bgvYq.gif",
+		"https://tenor.com/bwKzq.gif",
+		"https://tenor.com/wBGt.gif",
+		"https://tenor.com/buiAL.gif",
+		"https://tenor.com/uMFg.gif",
+		"https://tenor.com/Mjar.gif",
+		"https://tenor.com/bj0ti.gif",
+		"https://tenor.com/vAus.gif",
+		"https://tenor.com/bodTH.gif",
+		"https://tenor.com/bvYx7.gif",
+	}
+
+	rand.Seed(time.Now().UnixNano())
+	randNum := rand.Intn(len(gifs))
+	return gifs[randNum]
 }
