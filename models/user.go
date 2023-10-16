@@ -80,6 +80,9 @@ func FindUser(interaction *discordgo.InteractionCreate, discordUserID *string) (
 	if discordUserID == nil {
 		discordUserID = &interaction.Interaction.Member.User.ID
 	}
+	if discordUserId == nil {
+		discordUserID = &interaction.Interaction.User.ID
+	}
 
 	guildID := interaction.Interaction.GuildID
 	userDb := mongo.Db.Collection("users")
@@ -356,10 +359,6 @@ func (u *MongoUser) StartTurn() error {
 	set := bson.D{
 		{"turn_active", true},
 		{"can_move", true},
-	}
-
-	if (u.Role == Zombie) {
-		set = append(set, bson.E{"can_attack", true})
 	}
 
 	_, err := userDb.UpdateOne(
