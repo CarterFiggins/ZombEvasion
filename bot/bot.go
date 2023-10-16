@@ -6,6 +6,7 @@ import (
 	"os/signal"
 	"strings"
 	"math/rand"
+	"time"
 	
 	"infection/bot/commands"
 	"github.com/bwmarrin/discordgo"
