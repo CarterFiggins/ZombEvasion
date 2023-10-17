@@ -148,4 +148,6 @@ func Attack(discord *discordgo.Session, interaction *discordgo.InteractionCreate
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: response,
 	})
+
+	game.NextTurn(discord, interaction, mongoUser)
 }

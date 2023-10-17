@@ -87,4 +87,6 @@ func SetOffAlarm(discord *discordgo.Session, interaction *discordgo.InteractionC
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: response,
 	})
+
+	game.NextTurn(discord, interaction, mongoUser)
 }

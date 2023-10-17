@@ -3,6 +3,7 @@ package hexagonGrid
 import (
 	"math"
 	"image/color"
+	"errors"
 
 	"infection/hexagonGrid/hexSectors"
 	"github.com/tdewolff/canvas"
@@ -11,7 +12,7 @@ import (
 
 var (
 	Board = &GameBoard{
-	Loaded: false,
+		Loaded: false,
 	}
 )
 
@@ -24,10 +25,16 @@ type GameBoard struct {
 	CurrentDiscordUserID string
 }
 
-func (g *GameBoard) LoadBoard() error {
+func (g *GameBoard) LoadBoard() {
 	g.Grid = MainBoard()
 	g.Name = "main board"
 	g.Loaded = true
+}
+
+func (g *GameBoard) CreateBoardPng() error {
+	if (!g.Loaded) {
+		return errors.New("Board is not loaded in memory")
+	}
 	return CreateGameGrid(g.Grid)
 }
 

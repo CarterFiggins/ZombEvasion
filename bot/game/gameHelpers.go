@@ -16,7 +16,8 @@ import (
 )
 
 func Start(discord *discordgo.Session, interaction *discordgo.InteractionCreate) error {
-	err := hexagonGrid.Board.LoadBoard()
+	hexagonGrid.Board.LoadBoard()
+	err := hexagonGrid.Board.CreateBoardPng()
 	if err != nil {
 		return err
 	}

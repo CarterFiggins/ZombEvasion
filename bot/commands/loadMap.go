@@ -20,15 +20,7 @@ func LoadMap(discord *discordgo.Session, interaction *discordgo.InteractionCreat
 		Type: discordgo.InteractionResponseDeferredChannelMessageWithSource,
 	})
 
-	err := hexagonGrid.Board.LoadBoard()
-	if err != nil {
-		RespondEditWithError(discord, interaction, err)
-		return
-	}
-	if (!hexagonGrid.Board.Loaded) {
-		RespondEditWithError(discord, interaction, err)
-		return
-	}
+	hexagonGrid.Board.LoadBoard()
 
 	message := "Board Loaded"
 	response := &discordgo.WebhookEdit{

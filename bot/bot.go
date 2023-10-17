@@ -9,6 +9,7 @@ import (
 	"time"
 	
 	"infection/bot/commands"
+	"infection/hexagonGrid"
 	"github.com/bwmarrin/discordgo"
 )
 
@@ -48,6 +49,9 @@ func Run() {
 	// Open session
 	discord.Open()
 	defer discord.Close()
+
+
+	hexagonGrid.Board.LoadBoard()
 
 	// Run until code is terminated
 	log.Println("Bot running...")
