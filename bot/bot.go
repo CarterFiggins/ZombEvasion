@@ -42,6 +42,7 @@ func Run() {
 		}
 
 		if handler, ok := commands.CommandHandlers[interaction.ApplicationCommandData().Name]; ok {
+			log.Printf("User: %s, Command: %s, Time: %s", interaction.Interaction.Member.User.Username, interaction.ApplicationCommandData().Name, time.Now())
 			handler(discord, interaction)
 		}
 	})
