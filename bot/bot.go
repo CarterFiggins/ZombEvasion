@@ -13,14 +13,14 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-var (
-	BotToken string
-)
-
 func Run() {
 	log.Println("Setting up discord bot...")
+	botToken, ok := os.LookupEnv("BOT_TOKEN")
+	if !ok {
+		log.Fatal("Must set Discord token as env variable: BOT_TOKEN")
+	}
 	
-	discord, err := discordgo.New("Bot " + BotToken)
+	discord, err := discordgo.New("Bot " + botToken)
 	if err != nil {
 		log.Fatal(err)
 	}
