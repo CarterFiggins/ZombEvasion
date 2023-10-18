@@ -67,7 +67,8 @@ func Attack(discord *discordgo.Session, interaction *discordgo.InteractionCreate
 		return
 	}
 	if message != nil {
-		response.Content = *message
+		RespondWithMessage(discord, interaction, *message)
+		return
 	} else {
 		err = mongoUser.MoveUser(attackX, attackY)
 		if err != nil {
