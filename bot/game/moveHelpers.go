@@ -94,10 +94,6 @@ func NextTurn(discord *discordgo.Session, interaction *discordgo.InteractionCrea
 }
 
 func CanUserMoveHere(discord *discordgo.Session, interaction *discordgo.InteractionCreate, moveX int, moveY int, mongoUser *models.MongoUser) (*string, error) {
-	if (!mongoUser.CanMove) {
-		message := "You have already moved this turn. Use `/end-turn` to start the next players turn"
-		return &message, nil
-	}
 
 	moveHexName := hexSectors.GetHexName(moveX, moveY)
 

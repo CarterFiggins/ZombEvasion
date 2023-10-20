@@ -52,7 +52,9 @@ func Run() {
 	defer discord.Close()
 
 
-	hexagonGrid.Board.LoadBoard()
+	if err = hexagonGrid.Board.LoadBoard(); err != nil {
+		log.Fatal(err)
+	}
 
 	// Run until code is terminated
 	log.Println("Bot running...")

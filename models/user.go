@@ -19,7 +19,6 @@ type MongoUser struct {
 	NextDiscordUserID string
 	PrevDiscordUserID string
 	TurnActive bool
-	CanMove bool
 	CanSetOffAlarm bool
 	IsSafe bool
 }
@@ -38,7 +37,6 @@ func CreateMongoUsers(mongoUsers []*MongoUser) error {
 			{Key: "row", Value: user.Row},
 			{Key: "in_game", Value: user.InGame},
 			{Key: "is_safe", Value: user.IsSafe},
-			{Key: "can_move", Value: user.CanMove},
 			{Key: "can_set_off_alarm", Value: user.CanSetOffAlarm},
 			{Key: "turn_active", Value: user.TurnActive},
 			{Key: "max_moves", Value: user.MaxMoves},
@@ -64,7 +62,6 @@ func bsonUserToMongoUser(user bson.M) *MongoUser {
 		},
 		InGame: user["in_game"].(bool),
 		IsSafe: user["is_safe"].(bool),
-		CanMove: user["can_move"].(bool),
 		CanSetOffAlarm: user["can_set_off_alarm"].(bool),
 		TurnActive: user["turn_active"].(bool),
 		MaxMoves: int(user["max_moves"].(int32)),

@@ -94,6 +94,12 @@ func RespondEditWithError(discord *discordgo.Session, interaction *discordgo.Int
 	})
 }
 
+func RespondEditWithMessage(discord *discordgo.Session, interaction *discordgo.InteractionCreate, message string) {
+	discord.InteractionResponseEdit(interaction.Interaction, &discordgo.WebhookEdit{
+		Content: &message,
+	})
+}
+
 func RespondWithMessage(discord *discordgo.Session, interaction *discordgo.InteractionCreate, message string) {
 	discord.InteractionRespond(interaction.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
