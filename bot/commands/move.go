@@ -46,6 +46,11 @@ func Move(discord *discordgo.Session, interaction *discordgo.InteractionCreate) 
 		return
 	}
 
+	if !mongoUser.CanMove {
+		RespondWithMessage(discord, interaction, "You have already moved")
+		return
+	}
+
 	response := &discordgo.InteractionResponseData{
 		Content: "Can't move here try again",
 		Flags: discordgo.MessageFlagsEphemeral,
