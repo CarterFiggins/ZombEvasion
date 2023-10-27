@@ -6,14 +6,13 @@ import (
 	"time"
 
 	"infection/models"
-	"infection/bot/channel"
 	"infection/hexagonGrid/hexSectors"
 	"infection/hexagonGrid"
 	"github.com/bwmarrin/discordgo"
 )
 
 func MovedOnSectorMessages(discord *discordgo.Session, interaction *discordgo.InteractionCreate, sectorName, hexName string) (string, string, error) {
-	mongoUser, err := models.FindUser(interaction, nil)
+	mongoUser, err := models.FindUser(interaction)
 	if err != nil {
 		return "", "", err
 	}
@@ -66,31 +65,6 @@ func MovedOnSectorMessages(discord *discordgo.Session, interaction *discordgo.In
 	}
 
 	return turnMessage, userMessage, nil
-}
-
-func NextTurn(discord *discordgo.Session, interaction *discordgo.InteractionCreate, mongoUser *models.MongoUser) error {
-	if err := mongoUser.EndTurn(); err != nil {
-		return err
-	}
-
-	nextMongoUser, err := models.FindUser(interaction, &mongoUser.NextDiscordUserID)
-	if err != nil {
-		return err
-	}
-
-	if err =  nextMongoUser.StartTurn(); err != nil {
-		return err
-	}
-
-	nextUserMessage := "It is your turn in the Infection game"
-	if err = channel.SendUserMessage(discord, interaction, nextMongoUser.DiscordUserID, nextUserMessage); err != nil {
-		return err
-	}
-
-	if err = channel.ShowMap(discord, interaction); err != nil {
-		return err
-	}
-	return nil
 }
 
 func CanUserMoveHere(discord *discordgo.Session, interaction *discordgo.InteractionCreate, moveX int, moveY int, mongoUser *models.MongoUser) (*string, error) {

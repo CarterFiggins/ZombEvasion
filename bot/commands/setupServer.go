@@ -2,6 +2,7 @@ package commands
 
 import (	
 	"infection/bot/role"
+	"infection/bot/respond"
 	"infection/bot/channel"
 	"github.com/bwmarrin/discordgo"
 )
@@ -18,13 +19,13 @@ func SetupServer(discord *discordgo.Session, interaction *discordgo.InteractionC
 
 	err := role.SetUpRoles(discord, interaction)
 	if err != nil {
-		RespondWithError(discord, interaction, err)
+		respond.WithError(discord, interaction, err)
 		return
 	}
 
 	err = channel.SetUpChannels(discord, interaction)
 	if err != nil {
-		RespondWithError(discord, interaction, err)
+		respond.WithError(discord, interaction, err)
 		return
 	}
 

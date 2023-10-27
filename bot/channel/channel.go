@@ -15,7 +15,7 @@ const (
 )
 
 func SetUpChannels(discord *discordgo.Session, interaction *discordgo.InteractionCreate) error {
-	channelMap, err := CreateChannelMap(discord, interaction)
+	channelMap, err := CreateChannelMap(discord, interaction.Interaction.GuildID)
 	if err != nil {
 		return err
 	}
@@ -91,9 +91,9 @@ func SetUpChannels(discord *discordgo.Session, interaction *discordgo.Interactio
 	return nil
 }
 
-func CreateChannelMap(discord *discordgo.Session, interaction *discordgo.InteractionCreate) (map[string]*discordgo.Channel, error){
+func CreateChannelMap(discord *discordgo.Session, guildID string) (map[string]*discordgo.Channel, error){
 	channelMap := make(map[string]*discordgo.Channel)
-	channels, err := discord.GuildChannels(interaction.Interaction.GuildID)
+	channels, err := discord.GuildChannels(guildID)
 	if (err != nil) {
 		return channelMap, err
 	}
@@ -120,7 +120,7 @@ func SendUserMessage(discord *discordgo.Session, interaction *discordgo.Interact
 }
 
 func ShowMap(discord *discordgo.Session, interaction *discordgo.InteractionCreate) error {
-	channelMap, err := CreateChannelMap(discord, interaction)
+	channelMap, err := CreateChannelMap(discord, interaction.Interaction.GuildID)
 	if err != nil {
 		return err
 	}
@@ -151,7 +151,7 @@ func ShowMap(discord *discordgo.Session, interaction *discordgo.InteractionCreat
 }
 
 func GetChannel(discord *discordgo.Session, interaction *discordgo.InteractionCreate, channelName string) (*discordgo.Channel, error) {
-	channelMap, err := CreateChannelMap(discord, interaction)
+	channelMap, err := CreateChannelMap(discord, interaction.Interaction.GuildID)
 	if err != nil {
 		return nil, err
 	}

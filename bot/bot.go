@@ -9,6 +9,7 @@ import (
 	"time"
 	
 	"infection/bot/commands"
+	"infection/bot/components"
 	"infection/hexagonGrid"
 	"github.com/bwmarrin/discordgo"
 )
@@ -30,20 +31,28 @@ func Run() {
 
 	// Add event handler for commands
 	discord.AddHandler(func(discord *discordgo.Session, interaction *discordgo.InteractionCreate) {
-		if interaction.Interaction.Member == nil {
-			discord.InteractionRespond(interaction.Interaction, &discordgo.InteractionResponse{
-				Type: discordgo.InteractionResponseChannelMessageWithSource,
-				Data: &discordgo.InteractionResponseData{
-					Content: "DM commands are turned off",
-					Flags: discordgo.MessageFlagsEphemeral,
-				},
-			})
-			return
-		}
-
-		if handler, ok := commands.CommandHandlers[interaction.ApplicationCommandData().Name]; ok {
-			log.Printf("User: %s, Command: %s, Time: %s", interaction.Interaction.Member.User.Username, interaction.ApplicationCommandData().Name, time.Now())
-			handler(discord, interaction)
+		switch interaction.Type {
+			case discordgo.InteractionApplicationCommand:
+				if interaction.Interaction.Member == nil {
+					discord.InteractionRespond(interaction.Interaction, &discordgo.InteractionResponse{
+						Type: discordgo.InteractionResponseChannelMessageWithSource,
+						Data: &discordgo.InteractionResponseData{
+							Content: "DM commands are turned off",
+							Flags: discordgo.MessageFlagsEphemeral,
+						},
+					})
+					return
+				}
+				if handler, ok := commands.CommandHandlers[interaction.ApplicationCommandData().Name]; ok {
+					log.Printf("User: %s, Command: %s, Time: %s", interaction.Interaction.Member.User.Username, interaction.ApplicationCommandData().Name, time.Now())
+					handler(discord, interaction)
+				}
+			case discordgo.InteractionMessageComponent:
+				customID := interaction.MessageComponentData().CustomID
+				componentName := strings.Split(customID, "_")[0]
+				if handler, ok := components.ComponentsHandlers[componentName]; ok {
+					handler(discord, interaction)
+				}
 		}
 	})
 	

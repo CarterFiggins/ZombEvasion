@@ -76,15 +76,33 @@ func bsonUserToMongoUser(user bson.M) *MongoUser {
 	}
 }
 
-func FindUser(interaction *discordgo.InteractionCreate, discordUserID *string) (*MongoUser, error) {
+func FindUserByIDs(interaction *discordgo.InteractionCreate, discordUserID *string, guildID *string) (*MongoUser, error) {
 	if discordUserID == nil {
-		discordUserID = &interaction.Interaction.Member.User.ID
+		if interaction.Interaction.Member != nil {
+			discordUserID = &interaction.Interaction.Member.User.ID
+		} else {
+			discordUserID = &interaction.Interaction.User.ID
+		}
 	}
 
+	if guildID == nil {
+		guildID = &interaction.Interaction.GuildID
+	}
+
+	userDb := mongo.Db.Collection("users")
+	var user bson.M
+	if err := userDb.FindOne(mongo.Ctx, bson.M{"discord_guild_id": *guildID, "discord_user_id": *discordUserID}).Decode(&user); err != nil {
+		return nil, err
+	}
+	return bsonUserToMongoUser(user), nil
+}
+
+func FindUser(interaction *discordgo.InteractionCreate) (*MongoUser, error) {
+	discordUserID := interaction.Interaction.Member.User.ID
 	guildID := interaction.Interaction.GuildID
 	userDb := mongo.Db.Collection("users")
 	var user bson.M
-	if err := userDb.FindOne(mongo.Ctx, bson.M{"discord_guild_id": guildID, "discord_user_id": *discordUserID}).Decode(&user); err != nil {
+	if err := userDb.FindOne(mongo.Ctx, bson.M{"discord_guild_id": guildID, "discord_user_id": discordUserID}).Decode(&user); err != nil {
 		return nil, err
 	}
 	return bsonUserToMongoUser(user), nil

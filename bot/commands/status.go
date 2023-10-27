@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"infection/bot/game"
+	"infection/bot/respond"
 	"infection/models"
 	"github.com/bwmarrin/discordgo"
 )
@@ -14,9 +15,9 @@ var StatusDetails = &discordgo.ApplicationCommand{
 }
 
 func Status(discord *discordgo.Session, interaction *discordgo.InteractionCreate) {
-	mongoUser, err := models.FindUser(interaction, nil)
+	mongoUser, err := models.FindUser(interaction)
 	if err != nil {
-		RespondWithError(discord, interaction, err)
+		respond.WithError(discord, interaction, err)
 		return
 	}
 	

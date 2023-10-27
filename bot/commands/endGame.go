@@ -2,6 +2,7 @@ package commands
 
 import (
 	"infection/bot/game"
+	"infection/bot/respond"
 	"infection/bot/role"
 	"github.com/bwmarrin/discordgo"
 )
@@ -22,7 +23,7 @@ func EndGame(discord *discordgo.Session, interaction *discordgo.InteractionCreat
 
 	err := game.End(discord, interaction)
 	if err != nil {
-		RespondWithError(discord, interaction, err)
+		respond.WithError(discord, interaction, err)
 		return
 	}
 
