@@ -6,6 +6,7 @@ import (
 
 var (
 	ComponentsHandlers = map[string]func(discordS *discordgo.Session, interaction *discordgo.InteractionCreate){
-		"attack": Attack,
+		"attack-buttons": AttackButtons,
+		"move-buttons": MoveButtons,
 	}
 )

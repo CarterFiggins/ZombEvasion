@@ -44,7 +44,7 @@ func SetUpUsersTurn(discord *discordgo.Session, interaction *discordgo.Interacti
 	buttons := []discordgo.MessageComponent{
 		discordgo.Button{
 			Label: "Move",
-			CustomID: fmt.Sprintf("move_%s", guildID),
+			CustomID: fmt.Sprintf("move-buttons_%s", guildID),
 		},
 	}
 
@@ -53,7 +53,7 @@ func SetUpUsersTurn(discord *discordgo.Session, interaction *discordgo.Interacti
 			buttons, 
 			discordgo.Button{
 			Label: "Attack",
-			CustomID: fmt.Sprintf("attack_%s", guildID),
+			CustomID: fmt.Sprintf("attack-buttons_%s", guildID),
 			},
 		)
 	}

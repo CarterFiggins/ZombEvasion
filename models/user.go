@@ -20,6 +20,7 @@ type MongoUser struct {
 	PrevDiscordUserID string
 	TurnActive bool
 	CanMove bool
+	IsAttacking bool
 	CanSetOffAlarm bool
 	IsSafe bool
 }
@@ -41,6 +42,7 @@ func CreateMongoUsers(mongoUsers []*MongoUser) error {
 			{Key: "can_set_off_alarm", Value: user.CanSetOffAlarm},
 			{Key: "turn_active", Value: user.TurnActive},
 			{Key: "can_move", Value: user.CanMove},
+			{Key: "is_attacking", Value: user.IsAttacking},
 			{Key: "max_moves", Value: user.MaxMoves},
 			{Key: "discord_user_id", Value: user.DiscordUserID},
 			{Key: "discord_guild_id", Value: user.DiscordGuildID},
@@ -67,6 +69,7 @@ func bsonUserToMongoUser(user bson.M) *MongoUser {
 		CanSetOffAlarm: user["can_set_off_alarm"].(bool),
 		TurnActive: user["turn_active"].(bool),
 		CanMove: user["can_move"].(bool),
+		IsAttacking: user["is_attacking"].(bool),
 		MaxMoves: int(user["max_moves"].(int32)),
 		DiscordUserID: user["discord_user_id"].(string),
 		DiscordGuildID: user["discord_guild_id"].(string),
@@ -338,6 +341,28 @@ func (u *MongoUser) TurnIntoZombie() error {
 		return err
 	}
 
+	return nil
+}
+
+func (u *MongoUser) MarkAttacking(isAttacking bool) error {
+	userDb := mongo.Db.Collection("users")
+
+	_, err := userDb.UpdateOne(
+		mongo.Ctx,
+		bson.M{
+			"discord_guild_id": u.DiscordGuildID,
+			"discord_user_id": u.DiscordUserID,
+		},
+		bson.D{
+			{"$set", bson.D{
+				{"is_attacking", isAttacking},
+			}},
+		},
+	)
+	if err != nil {
+		return err
+	}
+	u.IsAttacking = isAttacking
 	return nil
 }
 

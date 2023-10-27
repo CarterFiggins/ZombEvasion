@@ -85,6 +85,7 @@ func Start(discord *discordgo.Session, interaction *discordgo.InteractionCreate)
 			mongoUser.NextDiscordUserID = mongoUsers[i + 1].DiscordUserID
 			mongoUser.PrevDiscordUserID = mongoUsers[len(mongoUsers) - 1].DiscordUserID
 			mongoUser.TurnActive = true
+			mongoUser.CanMove = true
 		} else if i == len(mongoUsers)-1 {
 			mongoUser.NextDiscordUserID = mongoUsers[0].DiscordUserID
 			mongoUser.PrevDiscordUserID = mongoUsers[i - 1].DiscordUserID
