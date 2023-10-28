@@ -5,16 +5,15 @@ import (
 	"fmt"
 
 	"infection/models"
-	"infection/bot/channel"
 	"github.com/bwmarrin/discordgo"
 )
 
-func NextTurn(discord *discordgo.Session, interaction *discordgo.InteractionCreate, mongoUser *models.MongoUser) error {
+func NextTurn(discord *discordgo.Session, interaction *discordgo.InteractionCreate, mongoUser *models.MongoUser, guildID string) error {
 	if err := mongoUser.EndTurn(); err != nil {
 		return err
 	}
 
-	nextMongoUser, err := models.FindUserByIDs(interaction, &mongoUser.NextDiscordUserID, nil)
+	nextMongoUser, err := models.FindUserByIDs(interaction, &mongoUser.NextDiscordUserID, &guildID)
 	if err != nil {
 		return err
 	}
@@ -23,23 +22,18 @@ func NextTurn(discord *discordgo.Session, interaction *discordgo.InteractionCrea
 		return err
 	}
 
-	if err = SetUpUsersTurn(discord, interaction, nextMongoUser); err != nil {
+	if err = SetUpUsersTurn(discord, guildID, nextMongoUser); err != nil {
 		return err
 	}
 
-	if err = channel.ShowMap(discord, interaction); err != nil {
-		return err
-	}
 	return nil
 }
 
-func SetUpUsersTurn(discord *discordgo.Session, interaction *discordgo.InteractionCreate, nextMongoUser *models.MongoUser) error {
+func SetUpUsersTurn(discord *discordgo.Session, guildID string, nextMongoUser *models.MongoUser) error {
 	userChannel, err := discord.UserChannelCreate(nextMongoUser.DiscordUserID)
 	if err != nil {
 		return err
 	}
-
-	guildID := interaction.Interaction.GuildID
 
 	buttons := []discordgo.MessageComponent{
 		discordgo.Button{

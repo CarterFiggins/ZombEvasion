@@ -111,7 +111,21 @@ func Start(discord *discordgo.Session, interaction *discordgo.InteractionCreate)
 		return err
 	}
 
-	if err = SetUpUsersTurn(discord, interaction, mongoUsers[0]); err != nil {
+	if err = SetUpUsersTurn(discord, interaction.Interaction.GuildID, mongoUsers[0]); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func ClearDatabase(guildID string) error {
+	err := models.DeactivateGame(guildID)
+	if err != nil {
+		return err
+	}
+
+	err = models.DeleteAllUsers(guildID)
+	if err != nil {
 		return err
 	}
 
@@ -136,23 +150,15 @@ func End(discord *discordgo.Session, interaction *discordgo.InteractionCreate) e
 		return err
 	}
 
-	err = models.DeactivateGame(guildID)
-	if err != nil {
-		return err
-	}
-
-	err = models.DeleteAllUsers(guildID)
-	if err != nil {
-		return err
-	}
+	ClearDatabase(guildID)
 
 	hexagonGrid.Board.UnloadGame()
 
 	return nil
 }
 
-func CheckGame(discord *discordgo.Session, interaction *discordgo.InteractionCreate) error {
-	mongoUsers, err := models.GetAllUsersPlaying(interaction)
+func CheckGame(discord *discordgo.Session, guildID string) error {
+	mongoUsers, err := models.GetAllUsersPlaying(guildID)
 	if err != nil {
 		return err
 	}
@@ -167,14 +173,14 @@ func CheckGame(discord *discordgo.Session, interaction *discordgo.InteractionCre
 
 	if (gameOver) {
 		// send game over message and who survived
-		alertsChannel, err := channel.GetChannel(discord, interaction, channel.Alerts)
+		gameChannel, err := channel.GetChannel(discord, guildID, channel.InfectionGameChannelName)
 		if err != nil {
 			return errors.New("no channel")
 		}
 
-		survivers, err := models.GetSurvivers(interaction)
+		survivers, err := models.GetSurvivers(guildID)
 
-		_, err = discord.ChannelMessageSend(alertsChannel.ID, fmt.Sprintf("Game Over! Survivers: %v", survivers))
+		_, err = discord.ChannelMessageSend(gameChannel.ID, fmt.Sprintf("Game Over! Survivers: %v", survivers))
 		if err != nil {
 			return err
 		}
@@ -183,7 +189,7 @@ func CheckGame(discord *discordgo.Session, interaction *discordgo.InteractionCre
 			return err
 		}
 
-		End(discord, interaction)
+		ClearDatabase(guildID)
 	}
 
 	return nil

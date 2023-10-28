@@ -69,7 +69,8 @@ func Attack(discord *discordgo.Session, interaction *discordgo.InteractionCreate
 		Content: &content,
 	}
 
-	message, err := game.CanUserMoveHere(discord, interaction, attackX, attackY, mongoUser);
+	moveHexName := hexSectors.GetHexName(attackX, attackY)
+	message, err := game.CanUserMoveHere(discord, interaction, moveHexName, mongoUser);
 	if err != nil {
 		respond.EditWithError(discord, interaction, err)
 		return
@@ -114,7 +115,7 @@ func Attack(discord *discordgo.Session, interaction *discordgo.InteractionCreate
 					return
 				}
 
-				if err = game.CheckGame(discord, interaction); err != nil {
+				if err = game.CheckGame(discord, interaction.Interaction.GuildID); err != nil {
 					respond.EditWithError(discord, interaction, err)
 					return
 				} 
@@ -141,13 +142,13 @@ func Attack(discord *discordgo.Session, interaction *discordgo.InteractionCreate
 		}
 		response.Content = &content
 
-		alertsChannel, err := channel.GetChannel(discord, interaction, channel.Alerts)
+		gameChannel, err := channel.GetChannel(discord, interaction.Interaction.GuildID, channel.InfectionGameChannelName)
 		if err != nil {
 			respond.EditWithError(discord, interaction, err)
 			return
 		}
 
-		_, err = discord.ChannelMessageSend(alertsChannel.ID, fmt.Sprintf("Sector %s was Attacked!", hexSectors.GetHexName(attackX, attackY)))
+		_, err = discord.ChannelMessageSend(gameChannel.ID, fmt.Sprintf("Sector %s was Attacked!", hexSectors.GetHexName(attackX, attackY)))
 		if err != nil {
 			respond.EditWithError(discord, interaction, err)
 			return
@@ -157,5 +158,5 @@ func Attack(discord *discordgo.Session, interaction *discordgo.InteractionCreate
 
 	discord.InteractionResponseEdit(interaction.Interaction, response)
 
-	game.NextTurn(discord, interaction, mongoUser)
+	game.NextTurn(discord, interaction, mongoUser, interaction.Interaction.GuildID)
 }

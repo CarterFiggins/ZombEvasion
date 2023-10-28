@@ -40,25 +40,30 @@ func (s *SectorsToMove) GetDepthSectors(depth int) []string {
 	return sectors
 }
 
-func MovedOnSectorMessages(discord *discordgo.Session, interaction *discordgo.InteractionCreate, sectorName, hexName string) (string, string, error) {
-	mongoUser, err := models.FindUser(interaction)
+func MovedOnSectorMessages(discord *discordgo.Session, interaction *discordgo.InteractionCreate, sectorName, hexName, guildID string) (string, string, error) {
+	mongoUser, err := models.FindUserByIDs(interaction, nil, &guildID)
 	if err != nil {
 		return "", "", err
+	}
+
+	discordUser := interaction.Interaction.User
+	if discordUser == nil {
+		discordUser = interaction.Interaction.Member.User
 	}
 	
 	if (sectorName == hexSectors.SafeHouseName) {
 		userMessage := "You made it to the Save House!"
-		turnMessage := fmt.Sprintf("%v has made it to the save house!", interaction.Interaction.Member.User.Mention())
+		turnMessage := fmt.Sprintf("%v has made it to the save house!", discordUser.Mention())
 
 		if err = mongoUser.EnterSafeHouse(); err != nil {
 			return "", "", err
 		}
 
-		if err = CheckGame(discord, interaction); err != nil {
+		if err = CheckGame(discord, guildID); err != nil {
 			return "", "", err
 		}
 
-		NextTurn(discord, interaction, mongoUser)
+		NextTurn(discord, interaction, mongoUser, guildID)
 
 		return turnMessage, userMessage, nil
 	}
@@ -71,7 +76,7 @@ func MovedOnSectorMessages(discord *discordgo.Session, interaction *discordgo.In
 		randNum := rand.Intn(10)
 		// 40% chance green
 		if randNum >= 0 && randNum <= 3 {
-			userMessage =fmt.Sprintf("You moved to a %s located at: %s\n You get to set off an alarm in another sector. Use `/set-off-alarm` to pick location", sectorName, hexName)
+			userMessage =fmt.Sprintf("You moved to a %s located at: %s\n You get to set off an alarm in another sector. Use `/set-off-alarm` in the game channel to pick location", sectorName, hexName)
 			turnMessage = ""
 			err = mongoUser.UpdateCanSetOffAlarm(true)
 			if err != nil {
@@ -82,38 +87,39 @@ func MovedOnSectorMessages(discord *discordgo.Session, interaction *discordgo.In
 		if randNum >= 4 && randNum <= 7 {
 			userMessage = fmt.Sprintf("You moved to a %s located at: %s\n The Alarm was set off!", sectorName, hexName)
 			turnMessage = fmt.Sprintf("ALERT! Alarm set off at %s", hexName)
-			NextTurn(discord, interaction, mongoUser)
+			NextTurn(discord, interaction, mongoUser, guildID)
 		}
 		// 20% change silence
 		if randNum >= 8 && randNum <= 9 {
 			userMessage = fmt.Sprintf("You moved to a %s located at: %s\n Silence. No alarms where set off", sectorName, hexName)
-			NextTurn(discord, interaction, mongoUser)
+			NextTurn(discord, interaction, mongoUser, guildID)
 		}
 	} else {
-		NextTurn(discord, interaction, mongoUser)
+		NextTurn(discord, interaction, mongoUser, guildID)
 	}
 
 	return turnMessage, userMessage, nil
 }
 
-func CanUserMoveHere(discord *discordgo.Session, interaction *discordgo.InteractionCreate, moveX int, moveY int, mongoUser *models.MongoUser) (*string, error) {
-
-	moveHexName := hexSectors.GetHexName(moveX, moveY)
-
+func CanUserMoveHere(discord *discordgo.Session, interaction *discordgo.InteractionCreate, moveHexName string, mongoUser *models.MongoUser) (*string, error) {
 	sectorsToMove := GetMoveSectors(mongoUser)
+	action := "move to"
+	if mongoUser.IsAttacking {
+		action = "attack"
+	}
 
-	if (moveX == mongoUser.Col && moveY == mongoUser.Row) {
-		message := fmt.Sprintf("You can't move to your current position: %s.\nAvailable sectors to move: %v", mongoUser.Location.GetHexName(), sectorsToMove.GetAllSectors())
+	if (moveHexName == mongoUser.Location.GetHexName()) {
+		message := fmt.Sprintf("You can't %s your current position: %s.\nAvailable sectors to move: %v", action, mongoUser.Location.GetHexName(), sectorsToMove.GetAllSectors())
 		return &message, nil
 	}
 
 	for _, sector := range sectorsToMove.GetAllSectors() {
-		if sector == hexSectors.GetHexName(moveX, moveY) {
+		if sector == moveHexName {
 			return nil, nil
 		}
 	}
 
-	message := fmt.Sprintf("You can't move to position: %s.\nCurrent position: %s\nAvailable sectors to move: %v", moveHexName, mongoUser.Location.GetHexName(), sectorsToMove.GetAllSectors())
+	message := fmt.Sprintf("You can't %s position: %s.\nCurrent position: %s\nAvailable sectors to move: %v", action, moveHexName, mongoUser.Location.GetHexName(), sectorsToMove.GetAllSectors())
 	return &message, nil
 }
 
@@ -209,6 +215,55 @@ func addSector(location *hexSectors.Location, depth int, sectorsToMove *SectorsT
 	return true
 }
 
+func makeMoveButtons(sectors []string, guildID string) []discordgo.MessageComponent {
+	var components []discordgo.MessageComponent
+	var buttons []discordgo.MessageComponent
+
+	for index, sectorName := range sectors {
+		buttons = append(buttons, discordgo.Button{
+			Label: sectorName,
+			CustomID: fmt.Sprintf("move-user_%s_%s", guildID, sectorName),
+		})
+		if (index + 1) % 5 == 0 {
+			components = append(components, discordgo.ActionsRow{
+				Components: buttons,
+			})
+			buttons = []discordgo.MessageComponent{}
+		}
+	}
+	if len(buttons) > 0 {
+		components = append(components, discordgo.ActionsRow{
+			Components: buttons,
+		})
+	}
+
+	return components
+}
+
+func RespondWithDistanceButtons(discord *discordgo.Session, interaction *discordgo.InteractionCreate, mongoUser *models.MongoUser, guildID string, moveDistance int) {
+	sectorsToMove := GetMoveSectors(mongoUser)
+	sectorsFromDistance := sectorsToMove.GetDepthSectors(moveDistance)
+	content := "Select where to move"
+	if mongoUser.IsAttacking {
+		content = "Select where to attack"
+	}
+
+	/*
+		If the Distance is above 4 it can break because you can't have more than
+		25 buttons in a message. If Distance is at 5 player could have 30 possible
+		sectors to move to that are 5 sectors away. Another way to solve this is to
+		send multiple messages each have 25 buttons or lower.
+	*/
+	components := makeMoveButtons(sectorsFromDistance, guildID)
+
+	response := &discordgo.WebhookEdit{
+		Content: &content,
+		Components: &components,
+	}
+
+	discord.InteractionResponseEdit(interaction.Interaction, response)
+}
+
 func RespondWithLocationButtons(discord *discordgo.Session, interaction *discordgo.InteractionCreate, mongoUser *models.MongoUser, guildID string) {
 	sectorsToMove := GetMoveSectors(mongoUser)
 	allSectors := sectorsToMove.GetAllSectors()
@@ -219,7 +274,8 @@ func RespondWithLocationButtons(discord *discordgo.Session, interaction *discord
 		content = "Select where to attack"
 	}
 	
-	if len(allSectors) > 24 {
+	// Can't send a message that has more than 25 buttons
+	if len(allSectors) > 25 {
 		content = "Select how far you want to move"
 		if mongoUser.IsAttacking {
 			content = "Select how far you want to attack"
@@ -234,23 +290,7 @@ func RespondWithLocationButtons(discord *discordgo.Session, interaction *discord
 			Components: buttons,
 		})
 	} else {
-		for index, sectorName := range allSectors {
-			buttons = append(buttons, discordgo.Button{
-				Label: sectorName,
-				CustomID: fmt.Sprintf("move-user_%s_%s", guildID, sectorName),
-			})
-			if (index + 1) % 5 == 0 {
-				components = append(components, discordgo.ActionsRow{
-					Components: buttons,
-				})
-				buttons = []discordgo.MessageComponent{}
-			}
-		}
-		if len(buttons) > 0 {
-			components = append(components, discordgo.ActionsRow{
-				Components: buttons,
-			})
-		}
+		components = makeMoveButtons(allSectors, guildID)
 	}
 
 	response := &discordgo.WebhookEdit{

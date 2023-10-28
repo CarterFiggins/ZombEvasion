@@ -2,6 +2,7 @@ package hexSectors
 
 import (
 	"fmt"
+	"strconv"
 )
 
 const (
@@ -94,4 +95,14 @@ func GetHexName(x, y int) string {
 	}
 
 	return fmt.Sprintf("%s%02d", letter, y + 1)
+}
+
+func GetColAndRowFromName(sectorName string) (int, int, error) {
+	x := LetterToNumMap[string(sectorName[0])]
+	y, err := strconv.Atoi(string(sectorName[1:3]))
+	if err != nil {
+		return 0, 0, err
+	}
+
+	return x, y, nil
 }

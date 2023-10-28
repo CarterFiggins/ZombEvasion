@@ -69,7 +69,8 @@ func Move(discord *discordgo.Session, interaction *discordgo.InteractionCreate) 
 		Content: &content,
 	}
 
-	message, err := game.CanUserMoveHere(discord, interaction, moveX, moveY, mongoUser);
+	moveHexName := hexSectors.GetHexName(moveX, moveY)
+	message, err := game.CanUserMoveHere(discord, interaction, moveHexName, mongoUser);
 	if err != nil {
 		respond.EditWithError(discord, interaction, err)
 		return
@@ -77,32 +78,31 @@ func Move(discord *discordgo.Session, interaction *discordgo.InteractionCreate) 
 	if message != nil {
 		respond.EditWithMessage(discord, interaction, *message)
 		return
-	} else {
-		err = mongoUser.MoveUser(moveX, moveY)
-		if err != nil {
-			respond.EditWithError(discord, interaction, err)
-			return
-		}
-		sector := hexagonGrid.Board.Grid[moveX][moveY]
-		sectorName := sector.GetSectorName()
-		alertsChannel, err := channel.GetChannel(discord, interaction, channel.Alerts)
-		if err != nil {
-			respond.EditWithError(discord, interaction, err)
-			return
-		}
-		turnMessage, userMessage, err := game.MovedOnSectorMessages(discord, interaction, sectorName, hexSectors.GetHexName(moveX, moveY))
-		if err != nil {
-			respond.EditWithError(discord, interaction, err)
-			return
-		}
+	}
+	err = mongoUser.MoveUser(moveX, moveY)
+	if err != nil {
+		respond.EditWithError(discord, interaction, err)
+		return
+	}
+	sector := hexagonGrid.Board.Grid[moveX][moveY]
+	sectorName := sector.GetSectorName()
+	gameChannel, err := channel.GetChannel(discord, interaction.Interaction.GuildID, channel.InfectionGameChannelName)
+	if err != nil {
+		respond.EditWithError(discord, interaction, err)
+		return
+	}
+	turnMessage, userMessage, err := game.MovedOnSectorMessages(discord, interaction, sectorName, hexSectors.GetHexName(moveX, moveY), interaction.Interaction.GuildID)
+	if err != nil {
+		respond.EditWithError(discord, interaction, err)
+		return
+	}
 
-		response.Content = &userMessage
-		if (turnMessage != "") {
-			_, err = discord.ChannelMessageSend(alertsChannel.ID, turnMessage)
-			if err != nil {
-				respond.EditWithError(discord, interaction, err)
-				return
-			}
+	response.Content = &userMessage
+	if (turnMessage != "") {
+		_, err = discord.ChannelMessageSend(gameChannel.ID, turnMessage)
+		if err != nil {
+			respond.EditWithError(discord, interaction, err)
+			return
 		}
 	}
 

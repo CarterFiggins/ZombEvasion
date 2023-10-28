@@ -135,9 +135,8 @@ func FindUsersAtLocation(interaction *discordgo.InteractionCreate, col, row int)
 	return mongoUsers, nil
 }
 
-func GetAllUsersPlaying(interaction *discordgo.InteractionCreate) ([]*MongoUser, error){
+func GetAllUsersPlaying(guildID string) ([]*MongoUser, error){
 	userDb := mongo.Db.Collection("users")
-	guildID := interaction.Interaction.GuildID
 
 	filterCursor, err := userDb.Find(mongo.Ctx, bson.M{"discord_guild_id": guildID, "in_game": true})
 	if err != nil {
@@ -155,9 +154,8 @@ func GetAllUsersPlaying(interaction *discordgo.InteractionCreate) ([]*MongoUser,
 	return mongoUsers, nil
 }
 
-func GetSurvivers(interaction *discordgo.InteractionCreate) ([]*MongoUser, error){
+func GetSurvivers(guildID string) ([]*MongoUser, error){
 	userDb := mongo.Db.Collection("users")
-	guildID := interaction.Interaction.GuildID
 
 	filterCursor, err := userDb.Find(mongo.Ctx, bson.M{"discord_guild_id": guildID, "is_safe": true})
 	if err != nil {

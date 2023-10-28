@@ -50,24 +50,10 @@ func CheckPermissions(discord *discordgo.Session, interaction *discordgo.Interac
 	return true
 }
 
-func GetChannel(discord *discordgo.Session, interaction *discordgo.InteractionCreate, channelName string) *discordgo.Channel {
-	channelMap, err := channel.CreateChannelMap(discord, interaction.Interaction.GuildID)
-	if err != nil {
-		respond.WithError(discord, interaction, err)
-		return nil
-	}
-	channel, ok := channelMap[channelName]
-	if !ok {
-		respond.WithMessage(discord, interaction,  fmt.Sprintf("ERROR: %s not found. Try running `/setup-server`", channelName))
-		return nil
-	}
-
-	return channel
-}
-
 func CheckChannel(discord *discordgo.Session, interaction *discordgo.InteractionCreate, channelID, channelName string) bool {
-	channel := GetChannel(discord, interaction, channelName)
-	if channel == nil {
+	channel, err := channel.GetChannel(discord, interaction.Interaction.GuildID, channelName)
+	if err != nil {
+		respond.EditWithError(discord, interaction, err)
 		return false
 	}
 
@@ -75,5 +61,5 @@ func CheckChannel(discord *discordgo.Session, interaction *discordgo.Interaction
 		respond.WithMessage(discord, interaction, fmt.Sprintf("This command only works in %s", channelName))
 		return false
 	}
-	return true 
+	return true
 }

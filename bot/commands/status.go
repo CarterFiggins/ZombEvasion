@@ -24,7 +24,7 @@ func Status(discord *discordgo.Session, interaction *discordgo.InteractionCreate
 	sectorsToMove := game.GetMoveSectors(mongoUser)
 
 	response := &discordgo.InteractionResponseData{
-		Content: fmt.Sprintf("Role: %s\nCurrent Position: %s\nYour Turn: %t\nMax Moves: %d\nNext Possible Moves:%v", mongoUser.Role, mongoUser.Location.GetHexName(), mongoUser.TurnActive, mongoUser.MaxMoves, sectorsToMove),
+		Content: fmt.Sprintf("Role: %s\nCurrent Position: %s\nYour Turn: %t\nMax Moves: %d\nNext Possible Moves:%v", mongoUser.Role, mongoUser.Location.GetHexName(), mongoUser.TurnActive, mongoUser.MaxMoves, sectorsToMove.GetAllSectors()),
 		Flags: discordgo.MessageFlagsEphemeral,
 	}
 

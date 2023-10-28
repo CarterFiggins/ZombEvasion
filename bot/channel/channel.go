@@ -11,7 +11,6 @@ import (
 
 const (
 	InfectionGameChannelName string = "infection-game"
-	Alerts = "alerts"
 )
 
 func SetUpChannels(discord *discordgo.Session, interaction *discordgo.InteractionCreate) error {
@@ -69,24 +68,6 @@ func SetUpChannels(discord *discordgo.Session, interaction *discordgo.Interactio
 			return err
 		}
 	}
-	_, ok = channelMap[Alerts] 
-	if !ok {
-		_, err = discord.GuildChannelCreateComplex(
-			interaction.Interaction.GuildID,
-			discordgo.GuildChannelCreateData{
-				Name: Alerts,
-				Type: discordgo.ChannelTypeGuildText,
-				PermissionOverwrites: []*discordgo.PermissionOverwrite{
-					everyonePermission,
-					botPermissions,
-					adminPermission,
-				},
-			},
-		)
-		if err != nil {
-			return err
-		}
-	}
 
 	return nil
 }
@@ -119,8 +100,8 @@ func SendUserMessage(discord *discordgo.Session, interaction *discordgo.Interact
 	return nil
 }
 
-func ShowMap(discord *discordgo.Session, interaction *discordgo.InteractionCreate) error {
-	channelMap, err := CreateChannelMap(discord, interaction.Interaction.GuildID)
+func ShowMap(discord *discordgo.Session, guildID string) error {
+	channelMap, err := CreateChannelMap(discord, guildID)
 	if err != nil {
 		return err
 	}
@@ -150,8 +131,8 @@ func ShowMap(discord *discordgo.Session, interaction *discordgo.InteractionCreat
 	return nil
 }
 
-func GetChannel(discord *discordgo.Session, interaction *discordgo.InteractionCreate, channelName string) (*discordgo.Channel, error) {
-	channelMap, err := CreateChannelMap(discord, interaction.Interaction.GuildID)
+func GetChannel(discord *discordgo.Session, guildID string, channelName string) (*discordgo.Channel, error) {
+	channelMap, err := CreateChannelMap(discord, guildID)
 	if err != nil {
 		return nil, err
 	}

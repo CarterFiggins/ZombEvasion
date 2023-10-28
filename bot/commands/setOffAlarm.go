@@ -61,13 +61,14 @@ func SetOffAlarm(discord *discordgo.Session, interaction *discordgo.InteractionC
 		return
 	}
 
-	alertsChannel := GetChannel(discord, interaction, channel.Alerts)
-	if alertsChannel == nil {
+	gameChannel, err := channel.GetChannel(discord, interaction.Interaction.GuildID, channel.InfectionGameChannelName)
+	if err != nil {
+		respond.WithError(discord, interaction, err)
 		return
 	}
 
 	message := fmt.Sprintf("ALERT! Alarm set off at %s", hexSectors.GetHexName(setOffX, setOffY))
-	_, err = discord.ChannelMessageSend(alertsChannel.ID, message)
+	_, err = discord.ChannelMessageSend(gameChannel.ID, message)
 	if err != nil {
 		respond.WithError(discord, interaction, err)
 		return
@@ -89,5 +90,5 @@ func SetOffAlarm(discord *discordgo.Session, interaction *discordgo.InteractionC
 		Data: response,
 	})
 
-	game.NextTurn(discord, interaction, mongoUser)
+	game.NextTurn(discord, interaction, mongoUser, interaction.Interaction.GuildID)
 }
