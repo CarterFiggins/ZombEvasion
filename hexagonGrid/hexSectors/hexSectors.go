@@ -100,6 +100,8 @@ func GetHexName(x, y int) string {
 func GetColAndRowFromName(sectorName string) (int, int, error) {
 	x := LetterToNumMap[string(sectorName[0])]
 	y, err := strconv.Atoi(string(sectorName[1:3]))
+	// grid row starts at 0
+	y = y - 1
 	if err != nil {
 		return 0, 0, err
 	}

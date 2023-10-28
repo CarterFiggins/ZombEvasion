@@ -3,7 +3,6 @@ package models
 import (
 	"infection/mongo"
 	"infection/hexagonGrid/hexSectors"
-
 	"go.mongodb.org/mongo-driver/bson"
 	"github.com/bwmarrin/discordgo"
 )
@@ -111,9 +110,8 @@ func FindUser(interaction *discordgo.InteractionCreate) (*MongoUser, error) {
 	return bsonUserToMongoUser(user), nil
 }
 
-func FindUsersAtLocation(interaction *discordgo.InteractionCreate, col, row int) ([]*MongoUser, error) {
+func FindUsersAtLocation(guildID string, col, row int) ([]*MongoUser, error) {
 	userDb := mongo.Db.Collection("users")
-	guildID := interaction.Interaction.GuildID
 
 	filterCursor, err := userDb.Find(mongo.Ctx, bson.M{
 		"discord_guild_id": guildID,

@@ -86,7 +86,7 @@ func CreateChannelMap(discord *discordgo.Session, guildID string) (map[string]*d
 	return channelMap, nil
 }
 
-func SendUserMessage(discord *discordgo.Session, interaction *discordgo.InteractionCreate, discordUserID, message string) error {
+func SendUserMessage(discord *discordgo.Session, discordUserID, message string) error {
 	userChannel, err := discord.UserChannelCreate(discordUserID)
 	if err != nil {
 		return err
@@ -138,7 +138,7 @@ func GetChannel(discord *discordgo.Session, guildID string, channelName string) 
 	}
 	channel, ok := channelMap[channelName]
 	if !ok {
-		return nil, errors.New(fmt.Sprintf("ERROR: %s not found. Try running `/setup-server`", channelName))
+		return nil, errors.New(fmt.Sprintf("%s not found. Try running `/setup-server`", channelName))
 	}
 
 	return channel, nil
