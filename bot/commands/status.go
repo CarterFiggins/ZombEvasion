@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"infection/bot/game"
+	"infection/bot/respond"
 	"infection/models"
 	"github.com/bwmarrin/discordgo"
 )
@@ -14,16 +15,16 @@ var StatusDetails = &discordgo.ApplicationCommand{
 }
 
 func Status(discord *discordgo.Session, interaction *discordgo.InteractionCreate) {
-	mongoUser, err := models.FindUser(interaction, nil)
+	mongoUser, err := models.FindUser(interaction)
 	if err != nil {
-		RespondWithError(discord, interaction, err)
+		respond.WithError(discord, interaction, err)
 		return
 	}
 	
 	sectorsToMove := game.GetMoveSectors(mongoUser)
 
 	response := &discordgo.InteractionResponseData{
-		Content: fmt.Sprintf("Role: %s\nCurrent Position: %s\nYour Turn: %t\nMax Moves: %d\nNext Possible Moves:%v", mongoUser.Role, mongoUser.Location.GetHexName(), mongoUser.TurnActive, mongoUser.MaxMoves, sectorsToMove),
+		Content: fmt.Sprintf("Role: %s\nCurrent Position: %s\nYour Turn: %t\nMax Moves: %d\nNext Possible Moves:%v", mongoUser.Role, mongoUser.Location.GetHexName(), mongoUser.TurnActive, mongoUser.MaxMoves, sectorsToMove.GetAllSectors()),
 		Flags: discordgo.MessageFlagsEphemeral,
 	}
 

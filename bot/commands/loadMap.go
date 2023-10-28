@@ -2,6 +2,7 @@ package commands
 
 import (
 	"infection/bot/role"
+	"infection/bot/respond"
 	"infection/hexagonGrid"
 	"github.com/bwmarrin/discordgo"
 )
@@ -21,7 +22,7 @@ func LoadMap(discord *discordgo.Session, interaction *discordgo.InteractionCreat
 	})
 
 	if err := hexagonGrid.Board.LoadBoard(); err != nil {
-		RespondWithError(discord, interaction, err)
+		respond.WithError(discord, interaction, err)
 		return
 	}
 

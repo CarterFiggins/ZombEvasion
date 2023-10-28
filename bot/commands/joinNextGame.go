@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"infection/bot/role"
+	"infection/bot/respond"
 	"github.com/bwmarrin/discordgo"
 )
 
@@ -20,7 +21,7 @@ func JoinNextGame(discord *discordgo.Session, interaction *discordgo.Interaction
 
 	err := role.AddRole(discord, interaction, role.WaitingForNextGame)
 	if err != nil {
-		RespondWithError(discord, interaction, err)
+		respond.WithError(discord, interaction, err)
 		return
 	}
 

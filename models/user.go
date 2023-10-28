@@ -3,7 +3,6 @@ package models
 import (
 	"infection/mongo"
 	"infection/hexagonGrid/hexSectors"
-
 	"go.mongodb.org/mongo-driver/bson"
 	"github.com/bwmarrin/discordgo"
 )
@@ -20,6 +19,7 @@ type MongoUser struct {
 	PrevDiscordUserID string
 	TurnActive bool
 	CanMove bool
+	IsAttacking bool
 	CanSetOffAlarm bool
 	IsSafe bool
 }
@@ -41,6 +41,7 @@ func CreateMongoUsers(mongoUsers []*MongoUser) error {
 			{Key: "can_set_off_alarm", Value: user.CanSetOffAlarm},
 			{Key: "turn_active", Value: user.TurnActive},
 			{Key: "can_move", Value: user.CanMove},
+			{Key: "is_attacking", Value: user.IsAttacking},
 			{Key: "max_moves", Value: user.MaxMoves},
 			{Key: "discord_user_id", Value: user.DiscordUserID},
 			{Key: "discord_guild_id", Value: user.DiscordGuildID},
@@ -67,6 +68,7 @@ func bsonUserToMongoUser(user bson.M) *MongoUser {
 		CanSetOffAlarm: user["can_set_off_alarm"].(bool),
 		TurnActive: user["turn_active"].(bool),
 		CanMove: user["can_move"].(bool),
+		IsAttacking: user["is_attacking"].(bool),
 		MaxMoves: int(user["max_moves"].(int32)),
 		DiscordUserID: user["discord_user_id"].(string),
 		DiscordGuildID: user["discord_guild_id"].(string),
@@ -76,23 +78,40 @@ func bsonUserToMongoUser(user bson.M) *MongoUser {
 	}
 }
 
-func FindUser(interaction *discordgo.InteractionCreate, discordUserID *string) (*MongoUser, error) {
+func FindUserByIDs(interaction *discordgo.InteractionCreate, discordUserID *string, guildID *string) (*MongoUser, error) {
 	if discordUserID == nil {
-		discordUserID = &interaction.Interaction.Member.User.ID
+		if interaction.Interaction.Member != nil {
+			discordUserID = &interaction.Interaction.Member.User.ID
+		} else {
+			discordUserID = &interaction.Interaction.User.ID
+		}
 	}
 
-	guildID := interaction.Interaction.GuildID
+	if guildID == nil {
+		guildID = &interaction.Interaction.GuildID
+	}
+
 	userDb := mongo.Db.Collection("users")
 	var user bson.M
-	if err := userDb.FindOne(mongo.Ctx, bson.M{"discord_guild_id": guildID, "discord_user_id": *discordUserID}).Decode(&user); err != nil {
+	if err := userDb.FindOne(mongo.Ctx, bson.M{"discord_guild_id": *guildID, "discord_user_id": *discordUserID}).Decode(&user); err != nil {
 		return nil, err
 	}
 	return bsonUserToMongoUser(user), nil
 }
 
-func FindUsersAtLocation(interaction *discordgo.InteractionCreate, col, row int) ([]*MongoUser, error) {
-	userDb := mongo.Db.Collection("users")
+func FindUser(interaction *discordgo.InteractionCreate) (*MongoUser, error) {
+	discordUserID := interaction.Interaction.Member.User.ID
 	guildID := interaction.Interaction.GuildID
+	userDb := mongo.Db.Collection("users")
+	var user bson.M
+	if err := userDb.FindOne(mongo.Ctx, bson.M{"discord_guild_id": guildID, "discord_user_id": discordUserID}).Decode(&user); err != nil {
+		return nil, err
+	}
+	return bsonUserToMongoUser(user), nil
+}
+
+func FindUsersAtLocation(guildID string, col, row int) ([]*MongoUser, error) {
+	userDb := mongo.Db.Collection("users")
 
 	filterCursor, err := userDb.Find(mongo.Ctx, bson.M{
 		"discord_guild_id": guildID,
@@ -114,9 +133,8 @@ func FindUsersAtLocation(interaction *discordgo.InteractionCreate, col, row int)
 	return mongoUsers, nil
 }
 
-func GetAllUsersPlaying(interaction *discordgo.InteractionCreate) ([]*MongoUser, error){
+func GetAllUsersPlaying(guildID string) ([]*MongoUser, error){
 	userDb := mongo.Db.Collection("users")
-	guildID := interaction.Interaction.GuildID
 
 	filterCursor, err := userDb.Find(mongo.Ctx, bson.M{"discord_guild_id": guildID, "in_game": true})
 	if err != nil {
@@ -134,9 +152,8 @@ func GetAllUsersPlaying(interaction *discordgo.InteractionCreate) ([]*MongoUser,
 	return mongoUsers, nil
 }
 
-func GetSurvivers(interaction *discordgo.InteractionCreate) ([]*MongoUser, error){
+func GetSurvivers(guildID string) ([]*MongoUser, error){
 	userDb := mongo.Db.Collection("users")
-	guildID := interaction.Interaction.GuildID
 
 	filterCursor, err := userDb.Find(mongo.Ctx, bson.M{"discord_guild_id": guildID, "is_safe": true})
 	if err != nil {
@@ -162,6 +179,19 @@ func DeleteAllUsers(guildID string) error {
 		return err
 	}
 	return nil
+}
+
+func NumOfPlayersInGame(guildID string) (int, error) {
+	userDb := mongo.Db.Collection("users")
+
+	count, err := userDb.CountDocuments(mongo.Ctx, bson.M{
+		"in_game": true,
+		"discord_guild_id": guildID,
+	})
+	if err != nil {
+		return 0, nil
+	}
+	return int(count), nil
 }
 
 func (u *MongoUser) UpgradeUsersMaxMoves(maxMoves int) error {
@@ -320,6 +350,28 @@ func (u *MongoUser) TurnIntoZombie() error {
 		return err
 	}
 
+	return nil
+}
+
+func (u *MongoUser) MarkAttacking(isAttacking bool) error {
+	userDb := mongo.Db.Collection("users")
+
+	_, err := userDb.UpdateOne(
+		mongo.Ctx,
+		bson.M{
+			"discord_guild_id": u.DiscordGuildID,
+			"discord_user_id": u.DiscordUserID,
+		},
+		bson.D{
+			{"$set", bson.D{
+				{"is_attacking", isAttacking},
+			}},
+		},
+	)
+	if err != nil {
+		return err
+	}
+	u.IsAttacking = isAttacking
 	return nil
 }
 

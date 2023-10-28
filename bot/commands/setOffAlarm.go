@@ -5,9 +5,9 @@ import (
 	"strings"
 
 	"infection/models"
+	"infection/bot/respond"
 	"infection/hexagonGrid/hexSectors"
 	"infection/bot/game"
-	"infection/bot/channel"
 	"github.com/bwmarrin/discordgo"
 )
 
@@ -34,19 +34,19 @@ var (
 )
 
 func SetOffAlarm(discord *discordgo.Session, interaction *discordgo.InteractionCreate) {
-	mongoUser, err := models.FindUser(interaction, nil)
+	mongoUser, err := models.FindUser(interaction)
 	if err != nil {
-		RespondWithError(discord, interaction, err)
+		respond.WithError(discord, interaction, err)
 		return
 	}
 
 	if !mongoUser.TurnActive {
-		RespondWithMessage(discord, interaction, "It is not your turn")
+		respond.WithMessage(discord, interaction, "It is not your turn")
 		return
 	}
 
 	if !mongoUser.CanSetOffAlarm {
-		RespondWithMessage(discord, interaction, "You are not able to set off alarm")
+		respond.WithMessage(discord, interaction, "You are not able to set off alarm")
 		return
 	}
 
@@ -56,24 +56,15 @@ func SetOffAlarm(discord *discordgo.Session, interaction *discordgo.InteractionC
 	setOffX := hexSectors.LetterToNumMap[letter]
 
 	if ok := game.CanSetOffAlarmHere(setOffX, setOffY); !ok {
-		RespondWithMessage(discord, interaction, "The sector you selected is either off the grid or not a dangerous sector")
-		return
-	}
-
-	alertsChannel := GetChannel(discord, interaction, channel.Alerts)
-	if alertsChannel == nil {
+		respond.WithMessage(discord, interaction, "The sector you selected is either off the grid or not a dangerous sector")
 		return
 	}
 
 	message := fmt.Sprintf("ALERT! Alarm set off at %s", hexSectors.GetHexName(setOffX, setOffY))
-	_, err = discord.ChannelMessageSend(alertsChannel.ID, message)
-	if err != nil {
-		RespondWithError(discord, interaction, err)
-		return
-	}
+	game.SendAlarm(discord, interaction, mongoUser, interaction.Interaction.GuildID, message)
 
 	if err = mongoUser.UpdateCanSetOffAlarm(false); err != nil {
-		RespondWithError(discord, interaction, err)
+		respond.WithError(discord, interaction, err)
 		return
 	}
 
@@ -88,5 +79,4 @@ func SetOffAlarm(discord *discordgo.Session, interaction *discordgo.InteractionC
 		Data: response,
 	})
 
-	game.NextTurn(discord, interaction, mongoUser)
 }

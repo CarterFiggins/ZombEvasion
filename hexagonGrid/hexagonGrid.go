@@ -21,7 +21,6 @@ type GameBoard struct {
 	Loaded bool
 	HumanSector *hexSectors.Human
 	ZombieSector *hexSectors.Zombie
-	CurrentDiscordUserID string
 }
 
 func (g *GameBoard) LoadBoard() error {

@@ -5,10 +5,9 @@ import (
 	"strings"
 
 	"infection/models"
+	"infection/bot/respond"
 	"infection/hexagonGrid/hexSectors"
-	"infection/hexagonGrid"
 	"infection/bot/game"
-	"infection/bot/channel"
 	"github.com/bwmarrin/discordgo"
 )
 
@@ -35,19 +34,19 @@ var (
 )
 
 func Attack(discord *discordgo.Session, interaction *discordgo.InteractionCreate) {
-	mongoUser, err := models.FindUser(interaction, nil)
+	mongoUser, err := models.FindUser(interaction)
 	if err != nil {
-		RespondWithError(discord, interaction, err)
+		respond.WithError(discord, interaction, err)
 		return
 	}
 
 	if mongoUser.Role != models.Zombie{
-		RespondWithMessage(discord, interaction, "You are not a zombie! You can not attack")
+		respond.WithMessage(discord, interaction, "You are not a zombie! You can not attack")
 		return
 	}
 
 	if !mongoUser.TurnActive {
-		RespondWithMessage(discord, interaction, "It is not your turn")
+		respond.WithMessage(discord, interaction, "It is not your turn")
 		return
 	}
 
@@ -68,67 +67,26 @@ func Attack(discord *discordgo.Session, interaction *discordgo.InteractionCreate
 		Content: &content,
 	}
 
-	message, err := game.CanUserMoveHere(discord, interaction, attackX, attackY, mongoUser);
+	moveHexName := hexSectors.GetHexName(attackX, attackY)
+	message, err := game.CanUserMoveHere(discord, interaction, moveHexName, mongoUser);
 	if err != nil {
-		RespondEditWithError(discord, interaction, err)
+		respond.EditWithError(discord, interaction, err)
 		return
 	}
 	if message != nil {
-		RespondEditWithMessage(discord, interaction, *message)
+		respond.EditWithMessage(discord, interaction, *message)
 		return
 	} else {
 		err = mongoUser.MoveUser(attackX, attackY)
 		if err != nil {
-			RespondEditWithError(discord, interaction, err)
+			respond.EditWithError(discord, interaction, err)
 			return
 		}
 
-		usersAttacked, err := models.FindUsersAtLocation(interaction, attackX, attackY)
-
-		var usersAttackedRoles []string
-		zombieUpgrade := false
-		
-		for _, user := range usersAttacked {
-			if (user.DiscordUserID == mongoUser.DiscordUserID) {
-				// Don't attack self
-				continue
-			}
-			usersAttackedRoles = append(usersAttackedRoles, user.Role)
-			zombieSectorCol := hexagonGrid.Board.ZombieSector.Col
-			zombieSectorRow := hexagonGrid.Board.ZombieSector.Row
-
-			if (user.Role == models.Human) {
-				if (mongoUser.MaxMoves == 2) {
-					zombieUpgrade = true
-					mongoUser.UpgradeUsersMaxMoves(3)
-				}
-				attackedMessage := fmt.Sprintf("You have been bitten by a zombie! You have Respawned as a zombie at %s", hexSectors.GetHexName(zombieSectorCol, zombieSectorRow))
-				if err = channel.SendUserMessage(discord, interaction, user.DiscordUserID, attackedMessage); err != nil {
-					RespondEditWithError(discord, interaction, err)
-					return
-				}
-
-				if err = user.TurnIntoZombie(); err != nil {
-					RespondEditWithError(discord, interaction, err)
-					return
-				}
-
-				if err = game.CheckGame(discord, interaction); err != nil {
-					RespondEditWithError(discord, interaction, err)
-					return
-				} 
-				
-			} else if (user.Role == models.Zombie) {
-				attackedMessage := fmt.Sprintf("A zombie mistaken you as a human and attacked you! You have Respawned at %s", hexSectors.GetHexName(zombieSectorCol, zombieSectorRow))
-				if err = channel.SendUserMessage(discord, interaction, user.DiscordUserID, attackedMessage); err != nil {
-					RespondEditWithError(discord, interaction, err)
-					return
-				}
-			}
-			if err = user.RespawnUser(zombieSectorCol, zombieSectorRow); err != nil {
-				RespondEditWithError(discord, interaction, err)
-				return
-			}
+		usersAttackedRoles, zombieUpgrade, err := game.AttackSector(discord, interaction.Interaction.GuildID, mongoUser, attackX, attackY)
+		if err != nil {
+			respond.EditWithError(discord, interaction, err)
+			return
 		}
 
 		content = "Missed!"
@@ -139,22 +97,9 @@ func Attack(discord *discordgo.Session, interaction *discordgo.InteractionCreate
 			}
 		}
 		response.Content = &content
-
-		alertsChannel, err := channel.GetChannel(discord, interaction, channel.Alerts)
-		if err != nil {
-			RespondEditWithError(discord, interaction, err)
-			return
-		}
-
-		_, err = discord.ChannelMessageSend(alertsChannel.ID, fmt.Sprintf("Sector %s was Attacked!", hexSectors.GetHexName(attackX, attackY)))
-		if err != nil {
-			RespondEditWithError(discord, interaction, err)
-			return
-		}
-
+		game.SendAlarm(discord, interaction, mongoUser, interaction.Interaction.GuildID, fmt.Sprintf("Sector %s was Attacked!", hexSectors.GetHexName(attackX, attackY)))
 	}
 
 	discord.InteractionResponseEdit(interaction.Interaction, response)
 
-	game.NextTurn(discord, interaction, mongoUser)
 }

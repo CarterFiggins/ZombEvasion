@@ -4,6 +4,7 @@ import (
 	"os"
 
 	"infection/bot/game"
+	"infection/bot/respond"
 	"infection/bot/role"
 	"infection/bot/channel"
 	"github.com/bwmarrin/discordgo"
@@ -33,12 +34,12 @@ func StartGame(discord *discordgo.Session, interaction *discordgo.InteractionCre
 
 	err := game.Start(discord, interaction)
 	if err != nil {
-		RespondEditWithError(discord, interaction, err)
+		respond.EditWithError(discord, interaction, err)
 		return	
 	} 
 	file, err := os.Open("./gameBoard.png")
 	if err != nil {
-		RespondEditWithError(discord, interaction, err)
+		respond.EditWithError(discord, interaction, err)
 		return	
 	} 
 	response.Files = []*discordgo.File{
