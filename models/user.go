@@ -181,6 +181,19 @@ func DeleteAllUsers(guildID string) error {
 	return nil
 }
 
+func NumOfPlayersInGame(guildID string) (int, error) {
+	userDb := mongo.Db.Collection("users")
+
+	count, err := userDb.CountDocuments(mongo.Ctx, bson.M{
+		"in_game": true,
+		"discord_guild_id": guildID,
+	})
+	if err != nil {
+		return 0, nil
+	}
+	return int(count), nil
+}
+
 func (u *MongoUser) UpgradeUsersMaxMoves(maxMoves int) error {
 	userDb := mongo.Db.Collection("users")
 

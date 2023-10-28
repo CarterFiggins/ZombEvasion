@@ -8,7 +8,6 @@ import (
 	"infection/bot/respond"
 	"infection/hexagonGrid/hexSectors"
 	"infection/bot/game"
-	"infection/bot/channel"
 	"github.com/bwmarrin/discordgo"
 )
 
@@ -85,6 +84,10 @@ func Attack(discord *discordgo.Session, interaction *discordgo.InteractionCreate
 		}
 
 		usersAttackedRoles, zombieUpgrade, err := game.AttackSector(discord, interaction.Interaction.GuildID, mongoUser, attackX, attackY)
+		if err != nil {
+			respond.EditWithError(discord, interaction, err)
+			return
+		}
 
 		content = "Missed!"
 		if len(usersAttackedRoles) > 0 {
@@ -94,22 +97,9 @@ func Attack(discord *discordgo.Session, interaction *discordgo.InteractionCreate
 			}
 		}
 		response.Content = &content
-
-		gameChannel, err := channel.GetChannel(discord, interaction.Interaction.GuildID, channel.InfectionGameChannelName)
-		if err != nil {
-			respond.EditWithError(discord, interaction, err)
-			return
-		}
-
-		_, err = discord.ChannelMessageSend(gameChannel.ID, fmt.Sprintf("Sector %s was Attacked!", hexSectors.GetHexName(attackX, attackY)))
-		if err != nil {
-			respond.EditWithError(discord, interaction, err)
-			return
-		}
-
+		game.SendAlarm(discord, interaction, mongoUser, interaction.Interaction.GuildID, fmt.Sprintf("Sector %s was Attacked!", hexSectors.GetHexName(attackX, attackY)))
 	}
 
 	discord.InteractionResponseEdit(interaction.Interaction, response)
 
-	game.NextTurn(discord, interaction, mongoUser, interaction.Interaction.GuildID)
 }

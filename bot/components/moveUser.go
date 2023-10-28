@@ -5,7 +5,6 @@ import (
 	"strings"
 	
 	"infection/bot/game"
-	"infection/bot/channel"
 	"infection/bot/respond"
 	"infection/models"
 	"infection/hexagonGrid"
@@ -37,9 +36,6 @@ func MoveUser(discord *discordgo.Session, interaction *discordgo.InteractionCrea
 
 	discord.InteractionRespond(interaction.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseDeferredChannelMessageWithSource,
-		Data: &discordgo.InteractionResponseData{
-			Flags: discordgo.MessageFlagsEphemeral,
-		},
 	})
 
 	message, err := game.CanUserMoveHere(discord, interaction, sectorLocationName, mongoUser)
@@ -76,9 +72,9 @@ func MoveUser(discord *discordgo.Session, interaction *discordgo.InteractionCrea
 			return
 		}
 
-		content = "Missed!"
+		content = fmt.Sprintf("You Attacked %s. Missed!", sectorLocationName)
 		if len(usersAttackedRoles) > 0 {
-			content = fmt.Sprintf("You Attacked: %v", usersAttackedRoles)
+			content = fmt.Sprintf("You Attacked %s. Roles Attacked: %v", sectorLocationName, usersAttackedRoles)
 			if zombieUpgrade {
 				content += "\nYou have been upgraded! You can now move 3 sectors"
 			}
@@ -98,23 +94,6 @@ func MoveUser(discord *discordgo.Session, interaction *discordgo.InteractionCrea
 		gameMessage = turnMessage
 	}
 
-	gameChannel, err := channel.GetChannel(discord, guildID, channel.InfectionGameChannelName)
-	if err != nil {
-		respond.EditWithError(discord, interaction, err)
-		return
-	}
-
-	if (gameMessage != "") {
-		_, err = discord.ChannelMessageSend(gameChannel.ID, gameMessage)
-		if err != nil {
-			respond.EditWithError(discord, interaction, err)
-			return
-		}
-	}
-
+	game.SendAlarm(discord, interaction, mongoUser, guildID, gameMessage)
 	discord.InteractionResponseEdit(interaction.Interaction, response)
-
-	if mongoUser.IsAttacking {
-		game.NextTurn(discord, interaction, mongoUser, guildID)
-	}
 }

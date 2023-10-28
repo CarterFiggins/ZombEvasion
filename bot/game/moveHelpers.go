@@ -62,9 +62,6 @@ func MovedOnSectorMessages(discord *discordgo.Session, interaction *discordgo.In
 		if err = CheckGame(discord, guildID); err != nil {
 			return "", "", err
 		}
-
-		NextTurn(discord, interaction, mongoUser, guildID)
-
 		return turnMessage, userMessage, nil
 	}
 
@@ -87,15 +84,11 @@ func MovedOnSectorMessages(discord *discordgo.Session, interaction *discordgo.In
 		if randNum >= 4 && randNum <= 7 {
 			userMessage = fmt.Sprintf("You moved to a %s located at: %s\n The Alarm was set off!", sectorName, hexName)
 			turnMessage = fmt.Sprintf("ALERT! Alarm set off at %s", hexName)
-			NextTurn(discord, interaction, mongoUser, guildID)
 		}
 		// 20% change silence
 		if randNum >= 8 && randNum <= 9 {
 			userMessage = fmt.Sprintf("You moved to a %s located at: %s\n Silence. No alarms where set off", sectorName, hexName)
-			NextTurn(discord, interaction, mongoUser, guildID)
 		}
-	} else {
-		NextTurn(discord, interaction, mongoUser, guildID)
 	}
 
 	return turnMessage, userMessage, nil

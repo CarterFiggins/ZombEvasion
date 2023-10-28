@@ -8,7 +8,6 @@ import (
 	"infection/bot/respond"
 	"infection/hexagonGrid/hexSectors"
 	"infection/bot/game"
-	"infection/bot/channel"
 	"github.com/bwmarrin/discordgo"
 )
 
@@ -61,18 +60,8 @@ func SetOffAlarm(discord *discordgo.Session, interaction *discordgo.InteractionC
 		return
 	}
 
-	gameChannel, err := channel.GetChannel(discord, interaction.Interaction.GuildID, channel.InfectionGameChannelName)
-	if err != nil {
-		respond.WithError(discord, interaction, err)
-		return
-	}
-
 	message := fmt.Sprintf("ALERT! Alarm set off at %s", hexSectors.GetHexName(setOffX, setOffY))
-	_, err = discord.ChannelMessageSend(gameChannel.ID, message)
-	if err != nil {
-		respond.WithError(discord, interaction, err)
-		return
-	}
+	game.SendAlarm(discord, interaction, mongoUser, interaction.Interaction.GuildID, message)
 
 	if err = mongoUser.UpdateCanSetOffAlarm(false); err != nil {
 		respond.WithError(discord, interaction, err)
@@ -90,5 +79,4 @@ func SetOffAlarm(discord *discordgo.Session, interaction *discordgo.InteractionC
 		Data: response,
 	})
 
-	game.NextTurn(discord, interaction, mongoUser, interaction.Interaction.GuildID)
 }

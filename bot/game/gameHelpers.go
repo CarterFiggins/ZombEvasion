@@ -81,7 +81,6 @@ func Start(discord *discordgo.Session, interaction *discordgo.InteractionCreate)
 	rand.Shuffle(len(mongoUsers), func(i, j int) { mongoUsers[i], mongoUsers[j] = mongoUsers[j], mongoUsers[i] })
 	for i, mongoUser := range mongoUsers {
 		if i == 0 {
-			hexagonGrid.Board.CurrentDiscordUserID = mongoUser.DiscordUserID
 			mongoUser.NextDiscordUserID = mongoUsers[i + 1].DiscordUserID
 			mongoUser.PrevDiscordUserID = mongoUsers[len(mongoUsers) - 1].DiscordUserID
 			mongoUser.TurnActive = true

@@ -8,7 +8,6 @@ import (
 	"infection/hexagonGrid"
 	"infection/bot/game"
 	"infection/bot/respond"
-	"infection/bot/channel"
 	"github.com/bwmarrin/discordgo"
 )
 
@@ -86,11 +85,6 @@ func Move(discord *discordgo.Session, interaction *discordgo.InteractionCreate) 
 	}
 	sector := hexagonGrid.Board.Grid[moveX][moveY]
 	sectorName := sector.GetSectorName()
-	gameChannel, err := channel.GetChannel(discord, interaction.Interaction.GuildID, channel.InfectionGameChannelName)
-	if err != nil {
-		respond.EditWithError(discord, interaction, err)
-		return
-	}
 	turnMessage, userMessage, err := game.MovedOnSectorMessages(discord, interaction, sectorName, hexSectors.GetHexName(moveX, moveY), interaction.Interaction.GuildID)
 	if err != nil {
 		respond.EditWithError(discord, interaction, err)
@@ -98,13 +92,7 @@ func Move(discord *discordgo.Session, interaction *discordgo.InteractionCreate) 
 	}
 
 	response.Content = &userMessage
-	if (turnMessage != "") {
-		_, err = discord.ChannelMessageSend(gameChannel.ID, turnMessage)
-		if err != nil {
-			respond.EditWithError(discord, interaction, err)
-			return
-		}
-	}
+	game.SendAlarm(discord, interaction, mongoUser, interaction.Interaction.GuildID, turnMessage)
 
 	discord.InteractionResponseEdit(interaction.Interaction, response)
 }
