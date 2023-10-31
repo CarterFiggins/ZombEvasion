@@ -21,6 +21,7 @@ var (
 		StatusDetails,
 		AttackDetails,
 		LoadMapDetails,
+		AnnounceNextGameDetails,
 	}
 
 	CommandHandlers = map[string]func(discordS *discordgo.Session, interaction *discordgo.InteractionCreate){
@@ -34,11 +35,12 @@ var (
 		StatusDetails.Name: Status,
 		AttackDetails.Name: Attack,
 		LoadMapDetails.Name: LoadMap,
+		AnnounceNextGameDetails.Name: AnnounceNextGame,
 	}
 )
 
 func CheckPermissions(discord *discordgo.Session, interaction *discordgo.InteractionCreate, roles []string) bool {
-	ok, err := role.UserHasRoles(discord, interaction, roles)
+	ok, err := role.UserHasOneRole(discord, interaction, roles)
 	if err != nil {
 		respond.WithError(discord, interaction, err)
 		return false

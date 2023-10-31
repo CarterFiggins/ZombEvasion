@@ -32,7 +32,7 @@ func isAdmin(discord *discordgo.Session, interaction *discordgo.InteractionCreat
 	return false, nil
 }
 
-func UserHasRoles(discord *discordgo.Session, interaction *discordgo.InteractionCreate, roles []string) (bool, error) {
+func UserHasOneRole(discord *discordgo.Session, interaction *discordgo.InteractionCreate, roles []string) (bool, error) {
 	hasRoleMap := make(map[string]bool)
 	for _, role := range roles {
 		hasRoleMap[role] = false
@@ -57,11 +57,11 @@ func UserHasRoles(discord *discordgo.Session, interaction *discordgo.Interaction
 	}
 
 	for _, isRole := range hasRoleMap {
-		if !isRole {
-			return false, nil
+		if isRole {
+			return true, nil
 		}
 	}
-	return true, nil
+	return false, nil
 }
 
 func SetUpRoles(discord *discordgo.Session, interaction *discordgo.InteractionCreate) error{

@@ -10,5 +10,7 @@ var (
 		"move-buttons": MoveButtons,
 		"max-move": MaxMove,
 		"move-user": MoveUser,
+		"joinQueue": JoinNextGame,
+		"leaveQueue": LeaveQueue,
 	}
 )
