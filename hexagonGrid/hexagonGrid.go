@@ -3,6 +3,7 @@ package hexagonGrid
 import (
 	"math"
 	"image/color"
+	"fmt"
 
 	"infection/hexagonGrid/hexSectors"
 	"github.com/tdewolff/canvas"
@@ -24,10 +25,10 @@ type GameBoard struct {
 }
 
 func (g *GameBoard) LoadBoard() error {
-	g.Grid = MainBoard()
+	g.Grid = SmallBoard()
 	g.Name = "main board"
 	g.Loaded = true
-	return CreateGameGrid(g.Grid)
+	return CreateGameGrid(g.Grid, "gameBoard")
 }
 
 func (g *GameBoard) UnloadGame() {
@@ -36,26 +37,27 @@ func (g *GameBoard) UnloadGame() {
 	}
 }
 
-func CreateGameGrid(board [][]Hex) error {
+func CreateGameGrid(board [][]Hex, fileName string) error {
 	var canvasSizeX float64 = 100
 	var canvasSizeY  float64 = 100
 
-	c := canvas.New(canvasSizeX, canvasSizeY)
-	ctx := canvas.NewContext(c)
+	goCanvas := canvas.New(canvasSizeX, canvasSizeY)
+	ctx := canvas.NewContext(goCanvas)
 
 	boardSizeY := len(board[0])
 	boardSizeX := len(board)
-	var height float64 = ((canvasSizeY - 4) / float64(boardSizeY)) / 2
+	var height float64 = ((canvasSizeY) / (float64(boardSizeY)+.5)) / 2
 	var hexRadius float64 = (2 * height) / math.Sqrt(3)
-	var xHexRadius float64 = ((canvasSizeX - 2) /float64(boardSizeX)) / 1.57
+	var xHexRadius float64 = ((canvasSizeX) /float64(boardSizeX)) / 1.57
+	setY := canvasSizeY - (height)*2
 
 	if xHexRadius < hexRadius {
 		height = (xHexRadius * math.Sqrt(3))/2
+		setY = canvasSizeY - (height) * 2
 		hexRadius = xHexRadius
 	}
 	var strokeWidth float64 = hexRadius / 10
-	setY := canvasSizeY - height*2
-	var setX float64 = 0
+	var setX float64 = -hexRadius/3
 	x := setX
 	y := setY
 
@@ -86,7 +88,7 @@ func CreateGameGrid(board [][]Hex) error {
 		}
 	}
 
-	renderers.Write("gameBoard.png", c, canvas.DPMM(8.0))
+	renderers.Write(fmt.Sprintf("%s.png", fileName), goCanvas, canvas.DPMM(8.0))
 	return nil
 }
 
