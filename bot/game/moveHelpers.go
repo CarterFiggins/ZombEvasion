@@ -73,7 +73,7 @@ func MovedOnSectorMessages(discord *discordgo.Session, interaction *discordgo.In
 		randNum := rand.Intn(10)
 		// 40% chance green
 		if randNum >= 0 && randNum <= 3 {
-			userMessage =fmt.Sprintf("You moved to a %s located at: %s\n You get to set off an alarm in another sector. Use `/set-off-alarm` in the game channel to pick location", sectorName, hexName)
+			userMessage =fmt.Sprintf("You moved to a %s located at: %s\n You get to set off an alarm in another sector. Type a sector in the text input. e.g A01", sectorName, hexName)
 			turnMessage = ""
 			err = mongoUser.UpdateCanSetOffAlarm(true)
 			if err != nil {

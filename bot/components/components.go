@@ -12,5 +12,7 @@ var (
 		"move-user": MoveUser,
 		"joinQueue": JoinNextGame,
 		"leaveQueue": LeaveQueue,
+		"set-off-alarm-button": SetOffAlarmText,
+		"set-off-alarm": SetOffAlarm,
 	}
 )

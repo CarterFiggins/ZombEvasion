@@ -270,6 +270,7 @@ func (u *MongoUser) UpdateCanSetOffAlarm(canSetOffAlarm bool) error {
 	if err != nil {
 		return err
 	}
+	u.CanSetOffAlarm = canSetOffAlarm
 	return nil
 }
 

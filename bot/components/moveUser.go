@@ -90,6 +90,19 @@ func MoveUser(discord *discordgo.Session, interaction *discordgo.InteractionCrea
 			respond.EditWithError(discord, interaction, err)
 			return
 		}
+		if(turnMessage == "") {
+			components := []discordgo.MessageComponent{
+				discordgo.ActionsRow{
+					[]discordgo.MessageComponent{
+						discordgo.Button{
+							CustomID: fmt.Sprintf("set-off-alarm-button_%s", guildID),
+							Label: "Set Off Alarm",
+						},
+					},
+				},
+			}
+			response.Components = &components
+		}
 		response.Content = &userMessage
 		gameMessage = turnMessage
 	}
