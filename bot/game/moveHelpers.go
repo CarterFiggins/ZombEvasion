@@ -52,8 +52,8 @@ func MovedOnSectorMessages(discord *discordgo.Session, interaction *discordgo.In
 	}
 	
 	if (sectorName == hexSectors.SafeHouseName) {
-		userMessage := "You made it to the Save House!"
-		turnMessage := fmt.Sprintf("%v has made it to the save house!", discordUser.Mention())
+		userMessage := "You made it to the Safe House!"
+		turnMessage := fmt.Sprintf("%v has made it to the safe house!", discordUser.Mention())
 
 		if err = mongoUser.EnterSafeHouse(); err != nil {
 			return "", "", err
