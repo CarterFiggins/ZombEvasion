@@ -3,7 +3,6 @@ package channel
 import (
 	"fmt"
 	"errors"
-	"os"
 
 	"infection/bot/role"
 	"github.com/bwmarrin/discordgo"
@@ -96,37 +95,6 @@ func SendUserMessage(discord *discordgo.Session, discordUserID, message string) 
 	if err != nil {
 		return err
 	}
-
-	return nil
-}
-
-func ShowMap(discord *discordgo.Session, guildID string) error {
-	channelMap, err := CreateChannelMap(discord, guildID)
-	if err != nil {
-		return err
-	}
-	channel, ok := channelMap[InfectionGameChannelName]
-	if !ok {
-		return errors.New(fmt.Sprintf("%s not found. Try running `/setup-server`", InfectionGameChannelName))
-	}
-
-	file, err := os.Open("./gameBoard.png")
-	if err != nil {
-		return	err
-	} 
-
-	_, err = discord.ChannelMessageSendComplex(channel.ID, &discordgo.MessageSend{
-		Files: []*discordgo.File{
-			{
-				ContentType: "image/png",
-				Name: "gameBoard.png",
-				Reader: file,
-			},
-		},
-	})
-	if err != nil {
-		return	err
-	} 
 
 	return nil
 }

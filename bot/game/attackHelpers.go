@@ -11,9 +11,19 @@ import (
 )
 
 func AttackSector(discord *discordgo.Session, guildID string, mongoUser *models.MongoUser, attackX, attackY int) ([]string, bool, error) {
-	usersAttacked, err := models.FindUsersAtLocation(guildID, attackX, attackY)
 	var usersAttackedRoles []string
 	zombieUpgrade := false
+	usersAttacked, err := models.FindUsersAtLocation(guildID, attackX, attackY)
+	if err != nil {
+		return usersAttackedRoles, false, err
+	}
+
+	board, err := hexagonGrid.GetBoard(guildID)
+	if err != nil {
+		return usersAttackedRoles, false, err
+	}
+
+	zombieSector := hexagonGrid.FindZombieSector(board)
 
 	for _, user := range usersAttacked {
 		if (user.DiscordUserID == mongoUser.DiscordUserID) {
@@ -21,8 +31,8 @@ func AttackSector(discord *discordgo.Session, guildID string, mongoUser *models.
 			continue
 		}
 		usersAttackedRoles = append(usersAttackedRoles, user.Role)
-		zombieSectorCol := hexagonGrid.Board.ZombieSector.Col
-		zombieSectorRow := hexagonGrid.Board.ZombieSector.Row
+		zombieSectorCol := zombieSector.Col
+		zombieSectorRow := zombieSector.Row
 
 		if (user.Role == models.Human) {
 			if (mongoUser.MaxMoves == 2) {

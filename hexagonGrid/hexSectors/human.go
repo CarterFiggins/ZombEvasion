@@ -20,8 +20,8 @@ func (s Human) GetStrokeColor() color.Color {
 }
 
 func (s *Human) GetSectorName() string {
-	s.Name = HumanSectorName
-	return HumanSectorName
+	s.Name = HumanName
+	return HumanName
 }
 
 func (s Human) GetText() (*canvas.Text, error) {

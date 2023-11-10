@@ -16,26 +16,24 @@ import (
 )
 
 func Start(discord *discordgo.Session, interaction *discordgo.InteractionCreate) error {
-	err := hexagonGrid.Board.LoadBoard()
-	if err != nil {
-		return err
-	}
-	if (!hexagonGrid.Board.Loaded) {
-		return errors.New("Board did not load")
-	}
 
 	users, err := role.GetDiscordUsersFromRole(discord, interaction, role.WaitingForNextGame)
 	if err != nil {
 		return err
 	}
 
-	err = role.MoveRoleToInGame(discord, interaction, users)
+	if len(users) < 2 {
+		return errors.New("Not enough players (need more than one)")
+	}
+
+	err = models.CreateOrUpdateGameDocument(discord, interaction)
 	if err != nil {
 		return err
 	}
-
-	if len(users) < 2 {
-		return errors.New("Not enough players (need more than one)")
+	
+	err = role.MoveRoleToInGame(discord, interaction, users)
+	if err != nil {
+		return err
 	}
 
 	// basic way to compute characters for now
@@ -47,6 +45,13 @@ func Start(discord *discordgo.Session, interaction *discordgo.InteractionCreate)
 	rand.Seed(time.Now().UnixNano())
 	rand.Shuffle(len(users), func(i, j int) { users[i], users[j] = users[j], users[i] })
 
+	board, err := hexagonGrid.GetBoard(interaction.Interaction.GuildID)
+	if err != nil {
+		return err
+	}
+
+	zombieSector := hexagonGrid.FindZombieSector(board)
+	humanSector := hexagonGrid.FindHumanSector(board)
 	var mongoUsers []*models.MongoUser
 	for i, user := range users {
 		mongoUser := &models.MongoUser{
@@ -55,21 +60,20 @@ func Start(discord *discordgo.Session, interaction *discordgo.InteractionCreate)
 			DiscordUsername: user.Username,
 			InGame: true,
 		}
-
 		if i + 1 <= int(numOfHumans) {
 			// is human
 			mongoUser.Role = models.Human
 			mongoUser.Location = &hexSectors.Location{
-				Col: hexagonGrid.Board.HumanSector.Col,
-				Row: hexagonGrid.Board.HumanSector.Row,
+				Col: humanSector.Col,
+				Row: humanSector.Row,
 			}
 			mongoUser.MaxMoves = 1
 		} else {
 			// is zombie
 			mongoUser.Role = models.Zombie
 			mongoUser.Location = &hexSectors.Location{
-				Col: hexagonGrid.Board.ZombieSector.Col,
-				Row: hexagonGrid.Board.ZombieSector.Row,
+				Col: zombieSector.Col,
+				Row: zombieSector.Row,
 			}
 			mongoUser.MaxMoves = 2
 		}
@@ -102,11 +106,6 @@ func Start(discord *discordgo.Session, interaction *discordgo.InteractionCreate)
 	}
 
 	if err = mongoUsers[0].StartTurn(); err != nil {
-		return err
-	}
-
-	err = models.CreateOrUpdateGameDocument(discord, interaction)
-	if err != nil {
 		return err
 	}
 
@@ -150,8 +149,6 @@ func End(discord *discordgo.Session, interaction *discordgo.InteractionCreate) e
 	}
 
 	ClearDatabase(guildID)
-
-	hexagonGrid.Board.UnloadGame()
 
 	return nil
 }

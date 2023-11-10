@@ -4,40 +4,82 @@ import (
 	"math"
 	"image/color"
 	"fmt"
+	"errors"
 
+	"infection/models"
 	"infection/hexagonGrid/hexSectors"
 	"github.com/tdewolff/canvas"
 	"github.com/tdewolff/canvas/renderers"
 )
 
-var (
-	Board = &GameBoard{
-		Loaded: false,
-	}
+const (
+	ForestBoardName string = "forestBoard"
+	GraveYardBoardName = "graveYardBoard"
+	HospitalBoardName = "hospitalBoard"
 )
 
-type GameBoard struct {
-	Grid [][]Hex
-	Name string
-	Loaded bool
-	HumanSector *hexSectors.Human
-	ZombieSector *hexSectors.Zombie
-}
-
-func (g *GameBoard) LoadBoard() error {
-	g.Grid = SmallBoard()
-	g.Name = "main board"
-	g.Loaded = true
-	return CreateGameGrid(g.Grid, "gameBoard")
-}
-
-func (g *GameBoard) UnloadGame() {
-	Board = &GameBoard{
-		Loaded: false,
+func GetBoard(guildID string) ([][]Hex, error) {
+	game, err := models.GetGame(guildID)
+	if err != nil {
+		return [][]Hex{}, err
 	}
+	if game.BoardName == ForestBoardName {
+		return ForestBoard(), nil
+	}
+	if game.BoardName == GraveYardBoardName {
+		return GraveYardBoard(), nil
+	}
+	if game.BoardName == HospitalBoardName {
+		return HospitalBoard(), nil
+	}
+	return [][]Hex{}, errors.New("No board found! Might need to run `/server-setup`")
 }
 
-func CreateGameGrid(board [][]Hex, fileName string) error {
+func FindZombieSector(board [][]Hex) *hexSectors.Zombie {
+	for xIndex := 0; xIndex < len(board); xIndex++ {
+		for yIndex := 0; yIndex < len(board[0]); yIndex++ {
+			hex := board[xIndex][yIndex]
+			hex.SetLocation(xIndex, yIndex)
+			hexName := hex.GetSectorName()
+			if (hexName == hexSectors.ZombieName) {
+				return hex.(*hexSectors.Zombie)
+			}
+		}
+	}
+	return nil
+}
+
+func FindHumanSector(board [][]Hex) *hexSectors.Human {
+	for xIndex := 0; xIndex < len(board); xIndex++ {
+		for yIndex := 0; yIndex < len(board[0]); yIndex++ {
+			hex := board[xIndex][yIndex]
+			hex.SetLocation(xIndex, yIndex)
+			hexName := hex.GetSectorName()
+			if (hexName == hexSectors.HumanName) {
+				return hex.(*hexSectors.Human)
+			}
+		}
+	}
+	return nil
+}
+
+func CreateAllGameImages() error {
+	err := CreateGameGridImage(ForestBoard(), ForestBoardName)
+	if err != nil {
+		return err
+	}
+	err = CreateGameGridImage(GraveYardBoard(), GraveYardBoardName)
+	if err != nil {
+		return err
+	}
+	err = CreateGameGridImage(HospitalBoard(), HospitalBoardName)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func CreateGameGridImage(board [][]Hex, fileName string) error {
 	var canvasSizeX float64 = 100
 	var canvasSizeY  float64 = 100
 
@@ -71,13 +113,6 @@ func CreateGameGrid(board [][]Hex, fileName string) error {
 		for yIndex := 0; yIndex <= boardSizeY - 1; yIndex++ {
 			hex := board[xIndex][yIndex]
 			hex.SetLocation(xIndex, yIndex)
-			hexName := hex.GetSectorName()
-			if (hexName == hexSectors.HumanSectorName) {
-				Board.HumanSector = hex.(*hexSectors.Human)
-			}
-			if (hexName == hexSectors.ZombieName) {
-				Board.ZombieSector = hex.(*hexSectors.Zombie)
-			}
 			drawHex(ctx, x, y, hexRadius, strokeWidth, hex.GetColor(), hex.GetStrokeColor())
 			text, err := hex.GetText()
 			if err != nil {

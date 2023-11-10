@@ -4,7 +4,7 @@ import (
 	"infection/hexagonGrid/hexSectors"
 )
 
-func SmallBoard() [][]Hex{
+func GraveYardBoard() [][]Hex{
 	return [][]Hex{
 		{
 			&hexSectors.Wall{},

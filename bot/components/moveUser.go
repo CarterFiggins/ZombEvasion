@@ -38,7 +38,7 @@ func MoveUser(discord *discordgo.Session, interaction *discordgo.InteractionCrea
 		Type: discordgo.InteractionResponseDeferredChannelMessageWithSource,
 	})
 
-	message, err := game.CanUserMoveHere(discord, interaction, sectorLocationName, mongoUser)
+	message, err := game.CanUserMoveHere(discord, interaction, sectorLocationName, guildID, mongoUser)
 	if err != nil {
 		respond.EditWithError(discord, interaction, err)
 		return
@@ -82,7 +82,14 @@ func MoveUser(discord *discordgo.Session, interaction *discordgo.InteractionCrea
 		response.Content = &content
 		gameMessage = fmt.Sprintf("Sector %s was Attacked!", hexSectors.GetHexName(moveX, moveY))
 	} else {
-		sector := hexagonGrid.Board.Grid[moveX][moveY]
+
+		board, err := hexagonGrid.GetBoard(guildID)
+		if err != nil {
+			respond.EditWithError(discord, interaction, err)
+			return
+		}
+
+		sector := board[moveX][moveY]
 		sectorName := sector.GetSectorName()
 
 		turnMessage, userMessage, err := game.MovedOnSectorMessages(discord, interaction, sectorName, sectorLocationName, guildID)

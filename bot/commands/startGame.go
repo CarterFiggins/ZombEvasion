@@ -2,17 +2,41 @@ package commands
 
 import (
 	"os"
+	"fmt"
 
 	"infection/bot/game"
 	"infection/bot/respond"
 	"infection/bot/role"
 	"infection/bot/channel"
+	"infection/hexagonGrid"
 	"github.com/bwmarrin/discordgo"
 )
 
 var StartGameDetails = &discordgo.ApplicationCommand{
 	Name: "start-game",
 	Description: "changes roles of players waiting in queue and starts the game",
+	Options: []*discordgo.ApplicationCommandOption{
+		{
+			Type: discordgo.ApplicationCommandOptionString,
+			Name: "board-name",
+			Description: "Select the board you would like to play with",
+			Required: true,
+			Choices: []*discordgo.ApplicationCommandOptionChoice{
+				{
+					Name: hexagonGrid.ForestBoardName,
+					Value: hexagonGrid.ForestBoardName,
+				},
+				{
+					Name: hexagonGrid.GraveYardBoardName,
+					Value: hexagonGrid.GraveYardBoardName,
+				},
+				{
+					Name: hexagonGrid.HospitalBoardName,
+					Value: hexagonGrid.HospitalBoardName,
+				},
+			},
+		},
+	},
 }
 
 func StartGame(discord *discordgo.Session, interaction *discordgo.InteractionCreate) {
@@ -27,6 +51,7 @@ func StartGame(discord *discordgo.Session, interaction *discordgo.InteractionCre
 		Type: discordgo.InteractionResponseDeferredChannelMessageWithSource,
 	})
 
+	boardName := interaction.ApplicationCommandData().Options[0].Value.(string)
 	message := "Game Started"
 	response := &discordgo.WebhookEdit{
 		Content: &message,
@@ -37,7 +62,8 @@ func StartGame(discord *discordgo.Session, interaction *discordgo.InteractionCre
 		respond.EditWithError(discord, interaction, err)
 		return	
 	} 
-	file, err := os.Open("./gameBoard.png")
+
+	file, err := os.Open(fmt.Sprintf("./%s.png", boardName))
 	if err != nil {
 		respond.EditWithError(discord, interaction, err)
 		return	

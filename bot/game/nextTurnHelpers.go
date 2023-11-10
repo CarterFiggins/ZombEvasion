@@ -58,7 +58,12 @@ func SetUpUsersTurn(discord *discordgo.Session, guildID string, nextMongoUser *m
 		},
 	}
 
-	file, err := os.Open("./gameBoard.png")
+	mongoGame, err := models.GetGame(guildID)
+	if err != nil {
+		return err
+	} 
+
+	file, err := os.Open(fmt.Sprintf("./%s.png", mongoGame.BoardName))
 	if err != nil {
 		return err
 	} 

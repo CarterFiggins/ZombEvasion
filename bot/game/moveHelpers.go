@@ -94,8 +94,8 @@ func MovedOnSectorMessages(discord *discordgo.Session, interaction *discordgo.In
 	return turnMessage, userMessage, nil
 }
 
-func CanUserMoveHere(discord *discordgo.Session, interaction *discordgo.InteractionCreate, moveHexName string, mongoUser *models.MongoUser) (*string, error) {
-	sectorsToMove := GetMoveSectors(mongoUser)
+func CanUserMoveHere(discord *discordgo.Session, interaction *discordgo.InteractionCreate, moveHexName, guildID string, mongoUser *models.MongoUser) (*string, error) {
+	sectorsToMove := GetMoveSectors(mongoUser, guildID)
 	action := "move to"
 	if mongoUser.IsAttacking {
 		action = "attack"
@@ -116,7 +116,7 @@ func CanUserMoveHere(discord *discordgo.Session, interaction *discordgo.Interact
 	return &message, nil
 }
 
-func GetMoveSectors(mongoUser *models.MongoUser) *SectorsToMove {
+func GetMoveSectors(mongoUser *models.MongoUser, guildID string) *SectorsToMove {
 	sectorsToMove := &SectorsToMove{
 		DepthSectors: []depthSector{
 			{
@@ -126,14 +126,14 @@ func GetMoveSectors(mongoUser *models.MongoUser) *SectorsToMove {
 		},
 	}
 
-	travelSectors(mongoUser.Location, mongoUser.Role, sectorsToMove, 1, mongoUser.MaxMoves)
+	travelSectors(mongoUser.Location, mongoUser.Role, guildID, sectorsToMove, 1, mongoUser.MaxMoves)
 
 	// remove users current position
 	sectorsToMove.DepthSectors = sectorsToMove.DepthSectors[1:]
 	return sectorsToMove
 }
 
-func travelSectors(location *hexSectors.Location, userRole string, sectorsToMove *SectorsToMove, depth, limit int) {
+func travelSectors(location *hexSectors.Location, userRole, guildID string, sectorsToMove *SectorsToMove, depth, limit int) {
 	if depth > limit {
 		return
 	}
@@ -143,41 +143,45 @@ func travelSectors(location *hexSectors.Location, userRole string, sectorsToMove
 	if up {
 		for i := location.Col - 1; i < location.Col + 2; i++ {
 			for j := location.Row - 1; j < location.Row + 1; j++ {
-				if canMoveHere(i, j, userRole) {
+				if canMoveHere(i, j, userRole, guildID) {
 					newLocation := &hexSectors.Location{Col: i, Row: j}
 					addSector(newLocation, depth, sectorsToMove)
-					travelSectors(newLocation, userRole, sectorsToMove, depth + 1, limit)
+					travelSectors(newLocation, userRole, guildID, sectorsToMove, depth + 1, limit)
 				}
 			}
 		}
-		if canMoveHere(location.Col, location.Row + 1, userRole) {
+		if canMoveHere(location.Col, location.Row + 1, userRole, guildID) {
 			newLocation := &hexSectors.Location{Col: location.Col, Row: location.Row + 1}
 			addSector(newLocation, depth, sectorsToMove)
-			travelSectors(newLocation, userRole, sectorsToMove, depth + 1, limit)
+			travelSectors(newLocation, userRole, guildID, sectorsToMove, depth + 1, limit)
 			
 		}
 	} else {
 		for i := location.Col - 1; i < location.Col + 2; i++ {
 			for j := location.Row; j < location.Row + 2; j++ {
-				if canMoveHere(i, j, userRole) {
+				if canMoveHere(i, j, userRole, guildID) {
 					newLocation := &hexSectors.Location{Col: i, Row: j}
 					addSector(newLocation, depth, sectorsToMove)
-					travelSectors(newLocation, userRole, sectorsToMove, depth + 1, limit)
+					travelSectors(newLocation, userRole, guildID, sectorsToMove, depth + 1, limit)
 					
 				}
 			}
 		}
-		if canMoveHere(location.Col, location.Row - 1, userRole) {
+		if canMoveHere(location.Col, location.Row - 1, userRole, guildID) {
 			newLocation := &hexSectors.Location{Col: location.Col, Row: location.Row - 1}
 			addSector(newLocation, depth, sectorsToMove)
-			travelSectors(newLocation, userRole, sectorsToMove, depth + 1, limit)
+			travelSectors(newLocation, userRole, guildID, sectorsToMove, depth + 1, limit)
 		}
 	}
 	return
 }
 
-func canMoveHere(col, row int, userRole string) bool {
-	grid := hexagonGrid.Board.Grid
+func canMoveHere(col, row int, userRole, guildID string) bool {
+	grid, err := hexagonGrid.GetBoard(guildID)
+	if err != nil {
+		fmt.Println(err)
+		return false
+	}
 	if col >= len(grid) || col < 0 {
 		return false
 	} else if row >= len(grid[col]) || row < 0 {
@@ -234,7 +238,7 @@ func makeMoveButtons(sectors []string, guildID string) []discordgo.MessageCompon
 }
 
 func RespondWithDistanceButtons(discord *discordgo.Session, interaction *discordgo.InteractionCreate, mongoUser *models.MongoUser, guildID string, moveDistance int) {
-	sectorsToMove := GetMoveSectors(mongoUser)
+	sectorsToMove := GetMoveSectors(mongoUser, guildID)
 	sectorsFromDistance := sectorsToMove.GetDepthSectors(moveDistance)
 	content := "Select where to move"
 	if mongoUser.IsAttacking {
@@ -258,7 +262,7 @@ func RespondWithDistanceButtons(discord *discordgo.Session, interaction *discord
 }
 
 func RespondWithLocationButtons(discord *discordgo.Session, interaction *discordgo.InteractionCreate, mongoUser *models.MongoUser, guildID string) {
-	sectorsToMove := GetMoveSectors(mongoUser)
+	sectorsToMove := GetMoveSectors(mongoUser, guildID)
 	allSectors := sectorsToMove.GetAllSectors()
 	var components []discordgo.MessageComponent
 	var buttons []discordgo.MessageComponent

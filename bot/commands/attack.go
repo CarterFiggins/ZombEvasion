@@ -68,7 +68,7 @@ func Attack(discord *discordgo.Session, interaction *discordgo.InteractionCreate
 	}
 
 	moveHexName := hexSectors.GetHexName(attackX, attackY)
-	message, err := game.CanUserMoveHere(discord, interaction, moveHexName, mongoUser);
+	message, err := game.CanUserMoveHere(discord, interaction, moveHexName, interaction.Interaction.GuildID, mongoUser);
 	if err != nil {
 		respond.EditWithError(discord, interaction, err)
 		return

@@ -69,7 +69,7 @@ func Move(discord *discordgo.Session, interaction *discordgo.InteractionCreate) 
 	}
 
 	moveHexName := hexSectors.GetHexName(moveX, moveY)
-	message, err := game.CanUserMoveHere(discord, interaction, moveHexName, mongoUser);
+	message, err := game.CanUserMoveHere(discord, interaction, moveHexName, interaction.Interaction.GuildID, mongoUser);
 	if err != nil {
 		respond.EditWithError(discord, interaction, err)
 		return
@@ -83,7 +83,14 @@ func Move(discord *discordgo.Session, interaction *discordgo.InteractionCreate) 
 		respond.EditWithError(discord, interaction, err)
 		return
 	}
-	sector := hexagonGrid.Board.Grid[moveX][moveY]
+
+	board, err := hexagonGrid.GetBoard(interaction.Interaction.GuildID)
+	if err != nil {
+		respond.EditWithError(discord, interaction, err)
+		return
+	}
+
+	sector := board[moveX][moveY]
 	sectorName := sector.GetSectorName()
 	turnMessage, userMessage, err := game.MovedOnSectorMessages(discord, interaction, sectorName, hexSectors.GetHexName(moveX, moveY), interaction.Interaction.GuildID)
 	if err != nil {

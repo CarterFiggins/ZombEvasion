@@ -4,6 +4,7 @@ import (
 	"infection/bot/role"
 	"infection/bot/respond"
 	"infection/bot/channel"
+	"infection/hexagonGrid"
 	"github.com/bwmarrin/discordgo"
 )
 
@@ -24,6 +25,12 @@ func SetupServer(discord *discordgo.Session, interaction *discordgo.InteractionC
 	}
 
 	err = channel.SetUpChannels(discord, interaction)
+	if err != nil {
+		respond.WithError(discord, interaction, err)
+		return
+	}
+
+	err = hexagonGrid.CreateAllGameImages()
 	if err != nil {
 		respond.WithError(discord, interaction, err)
 		return

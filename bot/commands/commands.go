@@ -20,7 +20,6 @@ var (
 		SetOffAlarmDetails,
 		StatusDetails,
 		AttackDetails,
-		LoadMapDetails,
 		AnnounceNextGameDetails,
 	}
 
@@ -34,7 +33,6 @@ var (
 		SetOffAlarmDetails.Name: SetOffAlarm,
 		StatusDetails.Name: Status,
 		AttackDetails.Name: Attack,
-		LoadMapDetails.Name: LoadMap,
 		AnnounceNextGameDetails.Name: AnnounceNextGame,
 	}
 )

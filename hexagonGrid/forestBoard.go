@@ -4,7 +4,7 @@ import (
 	"infection/hexagonGrid/hexSectors"
 )
 
-func MainBoard() [][]Hex{
+func ForestBoard() [][]Hex{
 	return [][]Hex{
 		// a
 		{

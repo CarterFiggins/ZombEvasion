@@ -10,7 +10,6 @@ import (
 	
 	"infection/bot/commands"
 	"infection/bot/components"
-	"infection/hexagonGrid"
 	"github.com/bwmarrin/discordgo"
 )
 
@@ -67,11 +66,6 @@ func Run() {
 	// Open session
 	discord.Open()
 	defer discord.Close()
-
-
-	if err = hexagonGrid.Board.LoadBoard(); err != nil {
-		log.Fatal(err)
-	}
 
 	// Run until code is terminated
 	log.Println("Bot running...")

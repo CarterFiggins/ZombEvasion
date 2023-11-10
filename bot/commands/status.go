@@ -21,7 +21,7 @@ func Status(discord *discordgo.Session, interaction *discordgo.InteractionCreate
 		return
 	}
 	
-	sectorsToMove := game.GetMoveSectors(mongoUser)
+	sectorsToMove := game.GetMoveSectors(mongoUser, interaction.Interaction.GuildID)
 
 	response := &discordgo.InteractionResponseData{
 		Content: fmt.Sprintf("Role: %s\nCurrent Position: %s\nYour Turn: %t\nMax Moves: %d\nNext Possible Moves:%v", mongoUser.Role, mongoUser.Location.GetHexName(), mongoUser.TurnActive, mongoUser.MaxMoves, sectorsToMove.GetAllSectors()),

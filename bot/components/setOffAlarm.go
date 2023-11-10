@@ -75,7 +75,7 @@ func SetOffAlarm(discord *discordgo.Session, interaction *discordgo.InteractionC
 	}
 
 	setOffX, setOffY, err := hexSectors.GetColAndRowFromName(value)
-	if ok := game.CanSetOffAlarmHere(setOffX, setOffY); !ok {
+	if ok := game.CanSetOffAlarmHere(setOffX, setOffY, guildID); !ok {
 		respond.EditWithMessage(discord, interaction, "The sector you selected is either off the grid or not a dangerous sector. Try again")
 		return
 	}

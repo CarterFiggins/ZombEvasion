@@ -8,7 +8,7 @@ import (
 const (
 	DangerousName string = "Dangerous Sector"
 	SafeHouseName = "Escape Sector"
-	HumanSectorName = "Human Sector"
+	HumanName = "Human Sector"
 	SecureName = "Secure Sector"
 	WallName = "Wall Sector"
 	ZombieName = "Zombie Sector"
