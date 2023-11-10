@@ -1,6 +1,8 @@
 package commands
 
 import (
+	"fmt"
+	
 	"github.com/bwmarrin/discordgo"
 )
 
@@ -17,11 +19,11 @@ func AnnounceNextGame(discord *discordgo.Session, interaction *discordgo.Interac
 				Components: []discordgo.MessageComponent{
 					discordgo.Button{
 						Label: "Join Queue",
-						CustomID: "joinQueue",
+						CustomID: fmt.Sprintf("joinQueue_%s", interaction.Interaction.GuildID),
 					},
 					discordgo.Button{
 						Label: "Leave Queue",
-						CustomID: "leaveQueue",
+						CustomID: fmt.Sprintf("leaveQueue_%s", interaction.Interaction.GuildID),
 					},
 				},
 			},

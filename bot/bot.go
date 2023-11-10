@@ -50,14 +50,22 @@ func Run() {
 				customID := interaction.MessageComponentData().CustomID
 				componentName := strings.Split(customID, "_")[0]
 				if handler, ok := components.ComponentsHandlers[componentName]; ok {
-					log.Printf("User: %s, CustomID: %s, Time: %s", interaction.Interaction.User.Username, interaction.MessageComponentData().CustomID, time.Now())
+					user := interaction.Interaction.User
+					if user == nil {
+						user = interaction.Interaction.Member.User
+					}
+					log.Printf("User: %s, CustomID: %s, Time: %s", user.Username, interaction.MessageComponentData().CustomID, time.Now())
 					handler(discord, interaction)
 				}
 			case discordgo.InteractionModalSubmit:
 				customID := interaction.ModalSubmitData().CustomID
 				componentName := strings.Split(customID, "_")[0]
 				if handler, ok := components.ComponentsHandlers[componentName]; ok {
-					log.Printf("User: %s, CustomID: %s, Time: %s", interaction.Interaction.User.Username, interaction.ModalSubmitData().CustomID, time.Now())
+					user := interaction.Interaction.User
+					if user == nil {
+						user = interaction.Interaction.Member.User
+					}
+					log.Printf("User: %s, CustomID: %s, Time: %s", user.Username, interaction.ModalSubmitData().CustomID, time.Now())
 					handler(discord, interaction)
 				}
 		}

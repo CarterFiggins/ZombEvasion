@@ -176,7 +176,12 @@ func CheckGame(discord *discordgo.Session, guildID string) error {
 
 		survivers, err := models.GetSurvivers(guildID)
 
-		_, err = discord.ChannelMessageSend(gameChannel.ID, fmt.Sprintf("Game Over! Survivers: %v", survivers))
+		var surviversNames []string
+		for _, surviver := range survivers {
+			surviversNames = append(surviversNames, surviver.DiscordUsername)
+		}
+
+		_, err = discord.ChannelMessageSend(gameChannel.ID, fmt.Sprintf("Game Over! Survivers: %v", surviversNames))
 		if err != nil {
 			return err
 		}
