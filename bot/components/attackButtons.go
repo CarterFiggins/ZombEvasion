@@ -39,12 +39,19 @@ func AttackButtons(discord *discordgo.Session, interaction *discordgo.Interactio
 		return
 	}
 
-	discord.InteractionRespond(interaction.Interaction, &discordgo.InteractionResponse{
+	err = discord.InteractionRespond(interaction.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseDeferredChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{
 			Flags: discordgo.MessageFlagsEphemeral,
 		},
 	})
+	if err != nil {
+		respond.WithError(discord, interaction, err)
+		return
+	}
 
-	game.RespondWithLocationButtons(discord, interaction, mongoUser, guildID)
+	if err = game.RespondWithLocationButtons(discord, interaction, mongoUser, guildID); err != nil {
+		respond.EditWithError(discord, interaction, err)
+		return
+	}
 }

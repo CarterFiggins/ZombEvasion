@@ -41,5 +41,9 @@ func MoveButtons(discord *discordgo.Session, interaction *discordgo.InteractionC
 		},
 	})
 
-	game.RespondWithLocationButtons(discord, interaction, mongoUser, guildID)
+	err = game.RespondWithLocationButtons(discord, interaction, mongoUser, guildID)
+	if err != nil {
+		respond.EditWithError(discord, interaction, err)
+		return
+	}
 }

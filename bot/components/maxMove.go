@@ -43,5 +43,9 @@ func MaxMove(discord *discordgo.Session, interaction *discordgo.InteractionCreat
 		},
 	})
 
-	game.RespondWithDistanceButtons(discord, interaction, mongoUser, guildID, moveDistance)
+	err = game.RespondWithDistanceButtons(discord, interaction, mongoUser, guildID, moveDistance)
+	if err != nil {
+		respond.EditWithError(discord, interaction, err)
+		return
+	}
 }

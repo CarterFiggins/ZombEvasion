@@ -17,7 +17,7 @@ type depthSector struct {
 }
 
 type SectorsToMove struct {
-	DepthSectors []depthSector
+	DepthSectors []*depthSector
 }
 
 func (s *SectorsToMove) GetAllSectors() []string {
@@ -38,6 +38,19 @@ func (s *SectorsToMove) GetDepthSectors(depth int) []string {
 		}
 	}
 	return sectors
+}
+
+type TravelData struct {
+	MongoUser *models.MongoUser
+	Location *hexSectors.Location
+	Grid [][]hexagonGrid.Hex
+	SectorsToMove *SectorsToMove
+	Depth int
+}
+
+type TravelPoint struct {
+	Data *TravelData
+	Location *hexSectors.Location
 }
 
 func MovedOnSectorMessages(discord *discordgo.Session, interaction *discordgo.InteractionCreate, sectorName, hexName, guildID string) (string, string, error) {
@@ -95,7 +108,11 @@ func MovedOnSectorMessages(discord *discordgo.Session, interaction *discordgo.In
 }
 
 func CanUserMoveHere(discord *discordgo.Session, interaction *discordgo.InteractionCreate, moveHexName, guildID string, mongoUser *models.MongoUser) (*string, error) {
-	sectorsToMove := GetMoveSectors(mongoUser, guildID)
+	sectorsToMove, err := GetMoveSectors(mongoUser, guildID)
+	if err != nil {
+		return nil, err
+	}
+	
 	action := "move to"
 	if mongoUser.IsAttacking {
 		action = "attack"
@@ -116,9 +133,9 @@ func CanUserMoveHere(discord *discordgo.Session, interaction *discordgo.Interact
 	return &message, nil
 }
 
-func GetMoveSectors(mongoUser *models.MongoUser, guildID string) *SectorsToMove {
+func GetMoveSectors(mongoUser *models.MongoUser, guildID string) (*SectorsToMove, error) {
 	sectorsToMove := &SectorsToMove{
-		DepthSectors: []depthSector{
+		DepthSectors: []*depthSector{
 			{
 				Depth: 0,
 				Name: mongoUser.Location.GetHexName(),
@@ -126,90 +143,108 @@ func GetMoveSectors(mongoUser *models.MongoUser, guildID string) *SectorsToMove 
 		},
 	}
 
-	travelSectors(mongoUser.Location, mongoUser.Role, guildID, sectorsToMove, 1, mongoUser.MaxMoves)
+	grid, err := hexagonGrid.GetBoard(guildID)
+	if err != nil {
+		return nil, err
+	}
+
+	travelData := &TravelData{
+		MongoUser: mongoUser,
+		Grid: grid,
+		SectorsToMove: sectorsToMove,
+	}
+	
+	travelSectors(travelData, mongoUser.Location, 0)
+
 
 	// remove users current position
-	sectorsToMove.DepthSectors = sectorsToMove.DepthSectors[1:]
-	return sectorsToMove
+	travelData.SectorsToMove.DepthSectors = travelData.SectorsToMove.DepthSectors[1:]
+	return travelData.SectorsToMove, nil
 }
 
-func travelSectors(location *hexSectors.Location, userRole, guildID string, sectorsToMove *SectorsToMove, depth, limit int) {
-	if depth > limit {
+func travelSectors(travelData *TravelData, location *hexSectors.Location, depth int) {
+	depth += 1
+	if depth > travelData.MongoUser.MaxMoves {
 		return
 	}
 
 	up := location.Col % 2 == 0
+	travelSlice := []*TravelPoint{}
 	
 	if up {
 		for i := location.Col - 1; i < location.Col + 2; i++ {
 			for j := location.Row - 1; j < location.Row + 1; j++ {
-				if canMoveHere(i, j, userRole, guildID) {
+				if canMoveHere(i, j, travelData, depth) {
 					newLocation := &hexSectors.Location{Col: i, Row: j}
-					addSector(newLocation, depth, sectorsToMove)
-					travelSectors(newLocation, userRole, guildID, sectorsToMove, depth + 1, limit)
+					travelSlice = append(travelSlice, &TravelPoint{Data: travelData, Location: newLocation})
 				}
 			}
 		}
-		if canMoveHere(location.Col, location.Row + 1, userRole, guildID) {
+		if canMoveHere(location.Col, location.Row + 1, travelData, depth) {
 			newLocation := &hexSectors.Location{Col: location.Col, Row: location.Row + 1}
-			addSector(newLocation, depth, sectorsToMove)
-			travelSectors(newLocation, userRole, guildID, sectorsToMove, depth + 1, limit)
+			travelSlice = append(travelSlice, &TravelPoint{Data: travelData, Location: newLocation})
 			
 		}
 	} else {
 		for i := location.Col - 1; i < location.Col + 2; i++ {
 			for j := location.Row; j < location.Row + 2; j++ {
-				if canMoveHere(i, j, userRole, guildID) {
+				if canMoveHere(i, j, travelData, depth) {
 					newLocation := &hexSectors.Location{Col: i, Row: j}
-					addSector(newLocation, depth, sectorsToMove)
-					travelSectors(newLocation, userRole, guildID, sectorsToMove, depth + 1, limit)
-					
+					travelSlice = append(travelSlice, &TravelPoint{Data: travelData, Location: newLocation})
 				}
 			}
 		}
-		if canMoveHere(location.Col, location.Row - 1, userRole, guildID) {
+		if canMoveHere(location.Col, location.Row - 1, travelData, depth) {
 			newLocation := &hexSectors.Location{Col: location.Col, Row: location.Row - 1}
-			addSector(newLocation, depth, sectorsToMove)
-			travelSectors(newLocation, userRole, guildID, sectorsToMove, depth + 1, limit)
+			travelSlice = append(travelSlice, &TravelPoint{Data: travelData, Location: newLocation})
 		}
+	}
+
+	for _, travelPoint := range travelSlice {
+		addSector(travelPoint.Data, travelPoint.Location, depth)
+		travelSectors(travelPoint.Data, travelPoint.Location, depth)
 	}
 	return
 }
 
-func canMoveHere(col, row int, userRole, guildID string) bool {
-	grid, err := hexagonGrid.GetBoard(guildID)
-	if err != nil {
-		fmt.Println(err)
+func canMoveHere(col, row int, travelData *TravelData, depth int) bool {
+	if col >= len(travelData.Grid) || col < 0 {
+		return false
+	} else if row >= len(travelData.Grid[col]) || row < 0 {
+		return false
+	} else if !travelData.Grid[col][row].CanMoveHere() {
+		return false
+	} else if travelData.MongoUser.Role == models.Zombie && travelData.Grid[col][row].GetSectorName() == hexSectors.SafeHouseName {
 		return false
 	}
-	if col >= len(grid) || col < 0 {
-		return false
-	} else if row >= len(grid[col]) || row < 0 {
-		return false
-	} else if !grid[col][row].CanMoveHere() {
-		return false
-	} else if userRole == models.Zombie && grid[col][row].GetSectorName() == hexSectors.SafeHouseName {
-		return false
+	location := &hexSectors.Location{Col: col, Row: row}
+	for _, move := range travelData.SectorsToMove.DepthSectors {
+		if move.Name == location.GetHexName() && depth >= move.Depth {
+			return false
+		}
 	}
 
 	return true
 }
 
-func addSector(location *hexSectors.Location, depth int, sectorsToMove *SectorsToMove) bool {
+func addSector(travelData *TravelData, location *hexSectors.Location, depth int) {
 	hexName := location.GetHexName()
 
-	for _, sector := range sectorsToMove.DepthSectors {
+	for _, sector := range travelData.SectorsToMove.DepthSectors {
 		if sector.Name == hexName {
-			return false
+			if sector.Depth > depth {
+				sector.Depth = depth
+				return
+			} else {
+				return
+			}
 		}
 	}
 
-	sectorsToMove.DepthSectors = append(sectorsToMove.DepthSectors, depthSector{
+	travelData.SectorsToMove.DepthSectors = append(travelData.SectorsToMove.DepthSectors, &depthSector{
 		Name: hexName,
 		Depth: depth,
 	})
-
-	return true
 }
 
 func makeMoveButtons(sectors []string, guildID string) []discordgo.MessageComponent {
@@ -237,8 +272,12 @@ func makeMoveButtons(sectors []string, guildID string) []discordgo.MessageCompon
 	return components
 }
 
-func RespondWithDistanceButtons(discord *discordgo.Session, interaction *discordgo.InteractionCreate, mongoUser *models.MongoUser, guildID string, moveDistance int) {
-	sectorsToMove := GetMoveSectors(mongoUser, guildID)
+func RespondWithDistanceButtons(discord *discordgo.Session, interaction *discordgo.InteractionCreate, mongoUser *models.MongoUser, guildID string, moveDistance int) error {
+	sectorsToMove, err := GetMoveSectors(mongoUser, guildID)
+	if err != nil {
+		return err
+	}
+	
 	sectorsFromDistance := sectorsToMove.GetDepthSectors(moveDistance)
 	content := "Select where to move"
 	if mongoUser.IsAttacking {
@@ -247,7 +286,7 @@ func RespondWithDistanceButtons(discord *discordgo.Session, interaction *discord
 
 	/*
 		If the Distance is above 4 it can break because you can't have more than
-		25 buttons in a message. If Distance is at 5 player could have 30 possible
+		25 buttons in a message. If Distance is at 5, player could have 30 possible
 		sectors to move to that are 5 sectors away. Another way to solve this is to
 		send multiple messages each have 25 buttons or lower.
 	*/
@@ -258,11 +297,15 @@ func RespondWithDistanceButtons(discord *discordgo.Session, interaction *discord
 		Components: &components,
 	}
 
-	discord.InteractionResponseEdit(interaction.Interaction, response)
+	_, err = discord.InteractionResponseEdit(interaction.Interaction, response)
+	return err
 }
 
-func RespondWithLocationButtons(discord *discordgo.Session, interaction *discordgo.InteractionCreate, mongoUser *models.MongoUser, guildID string) {
-	sectorsToMove := GetMoveSectors(mongoUser, guildID)
+func RespondWithLocationButtons(discord *discordgo.Session, interaction *discordgo.InteractionCreate, mongoUser *models.MongoUser, guildID string) error {
+	sectorsToMove, err := GetMoveSectors(mongoUser, guildID)
+	if err != nil {
+		return err
+	}
 	allSectors := sectorsToMove.GetAllSectors()
 	var components []discordgo.MessageComponent
 	var buttons []discordgo.MessageComponent
@@ -295,5 +338,6 @@ func RespondWithLocationButtons(discord *discordgo.Session, interaction *discord
 		Components: &components,
 	}
 
-	discord.InteractionResponseEdit(interaction.Interaction, response)
+	_, err = discord.InteractionResponseEdit(interaction.Interaction, response)
+	return err
 }

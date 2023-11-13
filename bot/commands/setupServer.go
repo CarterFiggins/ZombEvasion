@@ -14,30 +14,35 @@ var SetupServerDetails = &discordgo.ApplicationCommand{
 }
 
 func SetupServer(discord *discordgo.Session, interaction *discordgo.InteractionCreate) {
-	response := &discordgo.InteractionResponseData{
-		Content: "Server is Ready!",
-	}
+	discord.InteractionRespond(interaction.Interaction, &discordgo.InteractionResponse{
+		Type: discordgo.InteractionResponseDeferredChannelMessageWithSource,
+		Data: &discordgo.InteractionResponseData{
+			Flags: discordgo.MessageFlagsEphemeral,
+		},
+	})
 
 	err := role.SetUpRoles(discord, interaction)
 	if err != nil {
-		respond.WithError(discord, interaction, err)
+		respond.EditWithError(discord, interaction, err)
 		return
 	}
 
 	err = channel.SetUpChannels(discord, interaction)
 	if err != nil {
-		respond.WithError(discord, interaction, err)
+		respond.EditWithError(discord, interaction, err)
 		return
 	}
 
 	err = hexagonGrid.CreateAllGameImages()
 	if err != nil {
-		respond.WithError(discord, interaction, err)
+		respond.EditWithError(discord, interaction, err)
 		return
 	}
 
-	discord.InteractionRespond(interaction.Interaction, &discordgo.InteractionResponse{
-		Type: discordgo.InteractionResponseChannelMessageWithSource,
-		Data: response,
-	})
+	content := "Server is Ready!"
+	response := &discordgo.WebhookEdit{
+		Content: &content,
+	}
+
+	discord.InteractionResponseEdit(interaction.Interaction, response)
 }
