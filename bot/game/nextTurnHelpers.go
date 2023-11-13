@@ -77,7 +77,7 @@ func SetUpUsersTurn(discord *discordgo.Session, guildID string, nextMongoUser *m
 	for _, alert := range lastAlerts {
 		lastAlertsMessage += fmt.Sprintf("%s\n", alert)
 	}
-	nextUserMessage := fmt.Sprintf("It is your turn in the Infection game!\nCurrent Location: %s\n%s", nextMongoUser.Location.GetHexName(), lastAlertsMessage)
+	nextUserMessage := fmt.Sprintf("It is your turn in the Infection game!\nCurrent Location: %s\nCurrent Role\n%s", nextMongoUser.Location.GetHexName(), nextMongoUser.Role, lastAlertsMessage)
 	messageSend := &discordgo.MessageSend{
 		Content: nextUserMessage,
 		File: &discordgo.File{
