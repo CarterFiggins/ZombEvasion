@@ -1,4 +1,4 @@
-# ZombEvasion
+# ZombEvasion Discord Bot
 ![forestBoard](/forestBoard.png)
 ![hospitalBoard](/hospitalBoard.png)
 ![graveYardBoard](/graveYardBoard.png)
