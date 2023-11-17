@@ -57,7 +57,7 @@ func SetOffAlarm(discord *discordgo.Session, interaction *discordgo.InteractionC
 	customID := interaction.ModalSubmitData().CustomID
 	splitID := strings.Split(customID, "_")
 	guildID := splitID[1]
-	value := interaction.ModalSubmitData().Components[0].(*discordgo.ActionsRow).Components[0].(*discordgo.TextInput).Value
+	value := strings.ToUpper(interaction.ModalSubmitData().Components[0].(*discordgo.ActionsRow).Components[0].(*discordgo.TextInput).Value)
 	
 	discord.InteractionRespond(interaction.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseDeferredChannelMessageWithSource,
